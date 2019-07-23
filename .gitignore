@@ -25,3 +25,4 @@ gyroid
 bin/
 .env
 .vscode/
+junit/

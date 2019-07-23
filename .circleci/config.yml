@@ -10,4 +10,6 @@ jobs:
     steps:
       - checkout
       - run: go get -v -t -d ./...
-      - run: go test -v ./...
+      - run: go test -v ./... 2>&1 | go-junit-report > junit/report.xml
+      - store_test_results:
+          path: ./junit

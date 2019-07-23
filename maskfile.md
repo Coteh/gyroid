@@ -12,10 +12,6 @@ go build
 
 > Runs gyroid
 
-### run exe
-
-> Runs gyroid built exe
-
 ```sh
 ./gyroid
 ```
@@ -42,6 +38,14 @@ go install gyroid
 
 ```sh
 go test ./...
+```
+
+### test junit
+
+> Runs tests and saves them to junit XML format
+
+```sh
+go test -v ./... 2>&1 | go-junit-report > junit/report.xml
 ```
 
 ## clean
