@@ -12,7 +12,7 @@ func MarkArticleWithTag(client pocketConnector.PocketConnector, articleID string
 	resultArr, err := sendModifyRequest(client, &models.PocketAction{
 		Action: "tags_add",
 		ItemID: articleID,
-		Tags:   strings.Join(tags, ","),
+		Tags:   ConcatTags(tags),
 	})
 
 	if err != nil {
@@ -20,4 +20,9 @@ func MarkArticleWithTag(client pocketConnector.PocketConnector, articleID string
 	}
 
 	return resultArr[0].(bool), nil
+}
+
+// ConcatTags concatenates tags into a format suitable for Pocket requests involving tags
+func ConcatTags(tags []string) string {
+	return strings.Join(tags, ",")
 }

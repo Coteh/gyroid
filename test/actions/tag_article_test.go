@@ -4,7 +4,9 @@ import (
 	"gyroid/lib/actions"
 	"gyroid/lib/models"
 	"testing"
-	// "github.com/stretchr/testify/assert"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 type PocketClientMarkArticleWithTagMock struct {
@@ -12,7 +14,7 @@ type PocketClientMarkArticleWithTagMock struct {
 }
 
 func (m *PocketClientMarkArticleWithTagMock) Modify(params models.PocketModify) (*models.PocketModifyResult, error) {
-	m.Called()
+	m.Called(params)
 	mockArr := make([]interface{}, 1)
 	mockArr[0] = true
 	mockResult := &models.PocketModifyResult{
@@ -25,18 +27,31 @@ func (m *PocketClientMarkArticleWithTagMock) Modify(params models.PocketModify) 
 }
 
 func TestMarkArticleWithTagCallsModifyWithCorrectParams(t *testing.T) {
-	t.Fatal("Not implemented - waiting on param checking tests till all other tests are done, then will install testify and mockery")
+	mockClient := &PocketClientMarkArticleWithTagMock{}
+	tags := make([]string, 1)
+	tags[0] = "test"
+	expectedTagReqStr := tags[0]
+	expectedAction := models.PocketAction{
+		Action: "tags_add",
+		ItemID: ARTICLE_ID_FIXTURE,
+		Tags:   expectedTagReqStr,
+	}
+	expectedActionArr := make([]models.PocketAction, 1)
+	expectedActionArr[0] = expectedAction
+	expectedParams := models.PocketModify{
+		Actions: expectedActionArr,
+	}
+	mockClient.On("Modify", expectedParams)
+	actions.MarkArticleWithTag(mockClient, ARTICLE_ID_FIXTURE, tags)
 }
 
 func TestMarkArticleWithTagReturnsTrueOnSuccess(t *testing.T) {
 	mockClient := &PocketClientMarkArticleWithTagMock{}
 	tags := make([]string, 1)
 	tags[0] = "test"
+	mockClient.On("Modify", mock.Anything)
 	result, _ := actions.MarkArticleWithTag(mockClient, "100", tags)
-	if !result {
-		t.Logf("Expected true from MarkArticleWithTag - got false")
-		t.FailNow()
-	}
+	assert.True(t, result)
 }
 
 func TestMarkArticleWithTagReturnsFalseOnClientFailure(t *testing.T) {
@@ -44,10 +59,7 @@ func TestMarkArticleWithTagReturnsFalseOnClientFailure(t *testing.T) {
 	tags := make([]string, 1)
 	tags[0] = "test"
 	result, _ := actions.MarkArticleWithTag(mockClient, "100", tags)
-	if result {
-		t.Logf("Expected false from MarkArticleWithTag - got true")
-		t.FailNow()
-	}
+	assert.False(t, result)
 }
 
 func TestMarkArticleWithTagReturnsClientErrorOnClientFailure(t *testing.T) {
@@ -55,8 +67,18 @@ func TestMarkArticleWithTagReturnsClientErrorOnClientFailure(t *testing.T) {
 	tags := make([]string, 1)
 	tags[0] = "test"
 	_, err := actions.MarkArticleWithTag(mockClient, "100", tags)
-	if err == nil || err.Error() != MOCK_ERROR_STRING {
-		t.Logf("Did not receive client error")
-		t.FailNow()
-	}
+	assert.Equal(t, MOCK_ERROR_STRING, err.Error())
+}
+
+func TestConcatTagsConcatenatesTags(t *testing.T) {
+	tags := make([]string, 2)
+	tags[0] = "cat"
+	tags[1] = "dog"
+	assert.Equal(t, "cat,dog", actions.ConcatTags(tags))
+}
+
+func TestConcatTagsDoesNotAlterSingleTag(t *testing.T) {
+	tags := make([]string, 1)
+	tags[0] = "sameness"
+	assert.Equal(t, "sameness", actions.ConcatTags(tags))
 }

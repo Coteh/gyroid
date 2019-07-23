@@ -1,14 +1,12 @@
 package actions_test
 
 import (
-	// "errors"
 	"gyroid/lib/actions"
 	"gyroid/lib/models"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	// "github.com/stretchr/testify/mock"
 )
 
 func TestFavouriteArticleCallsModifyWithCorrectParams(t *testing.T) {
