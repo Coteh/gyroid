@@ -45,7 +45,7 @@ go test ./...
 > Runs tests and saves them to junit XML format
 
 ```sh
-go test -v ./... 2>&1 | go-junit-report > junit/report.xml
+mkdir junit && go test -v ./... 2>&1 | go-junit-report > junit/report.xml
 ```
 
 ## clean
