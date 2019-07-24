@@ -65,7 +65,7 @@ func initializePocketConnection() *pocketConnector.PocketClient {
 
 	if accessToken == "" {
 		fmt.Println("Creating new access token")
-		accessToken, err = pocketActions.PerformAuth(pocketClient, redirectURI)
+		accessToken, err = pocketActions.PerformAuth(pocketClient, 3000, redirectURI, utils.OpenBrowser)
 		if err != nil {
 			log.Fatal("Authentication with Pocket failed", err)
 		}
