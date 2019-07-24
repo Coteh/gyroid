@@ -1,4 +1,4 @@
-# gyroid
+# gyroid [![CircleCI](https://circleci.com/gh/Coteh/gyroid.svg?style=shield)](https://circleci.com/gh/Coteh/gyroid)
 
 A [Pocket](https://getpocket.com/) client designed to help you quickly refine your Pocket library.
 
