@@ -39,13 +39,7 @@ func TestGetUntaggedArticlesGetsUntaggedArticles(t *testing.T) {
 	var mut sync.Mutex
 	mockClient.On("Retrieve", mock.Anything)
 	actions.GetUntaggedArticles(mockClient, 0, 200, &articlesList, &mut)
-	if len(articlesList) == 0 {
-		t.FailNow()
-	}
-	if articlesList[0].ItemID != ITEM_ID_FIXTURE {
-		t.Logf("%s != %s", articlesList[0].ItemID, ITEM_ID_FIXTURE)
-		t.FailNow()
-	}
+	assert.Equal(t, ITEM_ID_FIXTURE, articlesList[0].ItemID)
 }
 
 func TestGetUnraggedArticlesCallsRetrieveWithCorrectParams(t *testing.T) {
@@ -68,10 +62,7 @@ func TestGetUntaggedArticlesReturnsClientErrorIfClientError(t *testing.T) {
 	articlesList := make([]models.ArticleResult, 0, 20)
 	var mut sync.Mutex
 	err := actions.GetUntaggedArticles(mockClient, 0, 200, &articlesList, &mut)
-	if err == nil || err.Error() != MOCK_ERROR_STRING {
-		t.Log("Error not thrown from client")
-		t.FailNow()
-	}
+	assert.Equal(t, MOCK_ERROR_STRING, err.Error())
 }
 
 func TestGetUntaggedArticlesShouldNotAddAnyArticlesIfClientError(t *testing.T) {
