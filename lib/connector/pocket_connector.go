@@ -6,9 +6,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	models "gyroid/lib/models"
 	"io/ioutil"
 	"net/http"
-	models "gyroid/lib/models"
 )
 
 // PocketConnector is an interface for methods that call Pocket API
@@ -17,7 +17,7 @@ type PocketConnector interface {
 	Retrieve(params models.PocketRetrieve) (*models.PocketRetrieveResult, error)
 	Add(params models.PocketAdd) (*models.PocketAddResult, error)
 	Modify(params models.PocketModify) (*models.PocketModifyResult, error)
-	RequestOAuthCode(redirectUri string) (string, error)
+	RequestOAuthCode(redirectURI string) (string, error)
 	Authorize(code string) (string, error)
 }
 
@@ -111,10 +111,6 @@ func (client *PocketClient) Retrieve(params models.PocketRetrieve) (*models.Pock
 
 	err = json.Unmarshal(body, &result)
 	if err != nil {
-		// TODO status of 2 means list is complete?
-		if result.Status == 2 {
-			return result, nil
-		}
 		return nil, err
 	}
 
@@ -220,13 +216,13 @@ func (client *PocketClient) Modify(params models.PocketModify) (*models.PocketMo
 }
 
 // RequestOAuthCode requests an OAuth request token from Pocket's API to provide to a user
-func (client *PocketClient) RequestOAuthCode(redirectUri string) (string, error) {
+func (client *PocketClient) RequestOAuthCode(redirectURI string) (string, error) {
 	reqParams := make(map[string]string)
 	httpClient := http.Client{}
 	var r *bytes.Buffer
 
 	reqParams["consumer_key"] = client.ConsumerKey
-	reqParams["redirect_uri"] = redirectUri
+	reqParams["redirect_uri"] = redirectURI
 
 	b, err := json.Marshal(reqParams)
 	if err != nil {
@@ -235,7 +231,7 @@ func (client *PocketClient) RequestOAuthCode(redirectUri string) (string, error)
 
 	r = bytes.NewBuffer(b)
 
-	req, err := http.NewRequest("POST", "https://getpocket.com/v3/oauth/request", r)
+	req, err := http.NewRequest("POST", client.getPocketURL("/oauth/request"), r)
 	if err != nil {
 		return "", err
 	}
@@ -285,7 +281,7 @@ func (client *PocketClient) Authorize(code string) (string, error) {
 
 	r := bytes.NewBuffer(b)
 
-	req, err := http.NewRequest("POST", "https://getpocket.com/v3/oauth/authorize", r)
+	req, err := http.NewRequest("POST", client.getPocketURL("/oauth/authorize"), r)
 	if err != nil {
 		return "", err
 	}
