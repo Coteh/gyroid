@@ -111,6 +111,10 @@ func (client *PocketClient) Retrieve(params models.PocketRetrieve) (*models.Pock
 
 	err = json.Unmarshal(body, &result)
 	if err != nil {
+		// Status of 2 means no new articles, just return result with empty list
+		if result.Status == 2 {
+			return result, nil
+		}
 		return nil, err
 	}
 
