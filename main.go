@@ -93,12 +93,12 @@ func loadPocketArticles(pocketClient *pocketConnector.PocketClient, articlesList
 
 	i := count
 	for i < 1000 {
-		go func() {
-			err := pocketActions.GetUntaggedArticles(pocketClient, i, count, articlesList, &mut)
+		go func(start int) {
+			err := pocketActions.GetUntaggedArticles(pocketClient, start, count, articlesList, &mut)
 			if err != nil {
 				log.Fatal(err)
 			}
-		}()
+		}(i)
 		i += count
 	}
 }
@@ -129,10 +129,9 @@ func runArticleLoop(pocketClient *pocketConnector.PocketClient, articlesList *[]
 		fmt.Printf("-----\n'%s'\n'%s'\n%s\n-----\n[T]ag\t%s[F]avourite\t[B]ump\t[A]rchive\t[D]elete\t[DD]elete with yes\t[O]pen\t[+]Add Article by URL\t[N]ext\t[E]xit\n-----\n",
 			article.ResolvedTitle, article.Excerpt, article.ResolvedURL, unfavStr)
 
-		br := bufio.NewReader(os.Stdin)
-		input, _ := br.ReadString('\n')
-
-		command := strings.TrimSpace(strings.ToLower(input))
+		command := readUserInput(func(input string) string {
+			return strings.TrimSpace(strings.ToLower(input))
+		})
 
 		if command == "" {
 			fmt.Println("Please select an option")
@@ -142,10 +141,9 @@ func runArticleLoop(pocketClient *pocketConnector.PocketClient, articlesList *[]
 		case "t":
 			fmt.Println("Enter tags separated by commas (',')")
 
-			br := bufio.NewReader(os.Stdin)
-			input, _ = br.ReadString('\n')
-
-			tags := strings.Split(input, ",")
+			tags := readUserInputAsArray(func(input string) []string {
+				return strings.Split(input, ",")
+			})
 
 			result, err := pocketActions.MarkArticleWithTag(pocketClient, article.ItemID, tags)
 			if result {
@@ -215,10 +213,10 @@ func runArticleLoop(pocketClient *pocketConnector.PocketClient, articlesList *[]
 			break
 		case "d":
 			fmt.Println("Are you sure you want to delete this article? You won't be able to restore it unless you readd it. [Y/n]")
-			br := bufio.NewReader(os.Stdin)
-			input, _ := br.ReadString('\n')
 
-			response := strings.TrimSpace(strings.ToLower(input))
+			response := readUserInput(func(input string) string {
+				return strings.TrimSpace(strings.ToLower(input))
+			})
 
 			if response != "y" && response != "yes" {
 				break
@@ -270,8 +268,7 @@ func main() {
 func loadFromJSON(path string, v interface{}) error {
 	file, err := os.Open(path)
 	if err != nil {
-		fmt.Errorf("Could not open file '%s'", path)
-		return err
+		return fmt.Errorf("Could not open file '%s'", path)
 	}
 
 	defer file.Close()
@@ -282,8 +279,7 @@ func loadFromJSON(path string, v interface{}) error {
 func saveToJSON(path string, v interface{}) error {
 	file, err := os.OpenFile(path, os.O_CREATE|os.O_WRONLY, 0755)
 	if err != nil {
-		fmt.Errorf("Could not open file '%s'", path)
-		return err
+		return fmt.Errorf("Could not open file '%s'", path)
 	}
 
 	defer file.Close()
@@ -291,9 +287,17 @@ func saveToJSON(path string, v interface{}) error {
 	return json.NewEncoder(file).Encode(v)
 }
 
-func readUserInput(strFunc func(string) string) string {
+func readUserInputRaw() string {
 	br := bufio.NewReader(os.Stdin)
 	input, _ := br.ReadString('\n')
 
-	return strFunc(input)
+	return input
+}
+
+func readUserInput(strFunc func(string) string) string {
+	return strFunc(readUserInputRaw())
+}
+
+func readUserInputAsArray(strFunc func(string) []string) []string {
+	return strFunc(readUserInputRaw())
 }
