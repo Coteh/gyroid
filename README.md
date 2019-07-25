@@ -41,15 +41,15 @@ gyroid
 
 See this project's [`maskfile.md`](maskfile.md) for more commands to build and run the project. You will need the latest version of [Go](https://golang.org/). (1.11 or newer as this project uses the new versioned module system)
 
-*The `maskfile.md` can also be executed using [`mask`](https://github.com/jakedeichert/mask). If you don't have mask installed, you can install it from [here](https://crates.io/crates/mask) using `cargo` (requires [Rust toolchain](https://rustup.rs/))*
+*The commands within the `maskfile.md` can also be executed using [`mask`](https://github.com/jakedeichert/mask). If you don't have mask installed, you can install it from [here](https://crates.io/crates/mask) using `cargo` (requires [Rust toolchain](https://rustup.rs/))*
 
 ## Issues
-- Number of requests made and number of articles to be returned from each request need to be fine-tuned
-- Certain edge cases of Pocket API (such as Retrieve request with offset past final articles on list) need to be handled
+- Number of requests made and number of articles to be returned from each request need to be fine-tuned (#5)
+- Certain edge cases of Pocket API (such as Retrieve request with offset past final articles on list) need to be handled (#10)
 - Check out [Issues](https://github.com/Coteh/gyroid/issues) to post your own
 
 ## Future Additions
-- Customize ordering of Pocket articles to be loaded
-- Clipboard support for adding articles from the clipboard
-- Quick tag system
-- Consider switching to [go-pocket](https://github.com/motemen/go-pocket) for Pocket API interaction
+- Customize ordering of Pocket articles to be loaded (#8)
+- Clipboard support for adding articles from the clipboard (#9)
+- Quick tag system (#6)
+- Consider switching to [go-pocket](https://github.com/motemen/go-pocket) for Pocket API interaction (#7)
