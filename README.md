@@ -44,12 +44,12 @@ See this project's [`maskfile.md`](maskfile.md) for more commands to build and r
 *The commands within the `maskfile.md` can also be executed using [`mask`](https://github.com/jakedeichert/mask). If you don't have mask installed, you can install it from [here](https://crates.io/crates/mask) using `cargo` (requires [Rust toolchain](https://rustup.rs/))*
 
 ## Issues
-- Number of requests made and number of articles to be returned from each request need to be fine-tuned (#5)
-- Certain edge cases of Pocket API (such as Retrieve request with offset past final articles on list) need to be handled (#10)
-- Check out [Issues](https://github.com/Coteh/gyroid/issues) to post your own
+- Number of requests made and number of articles to be returned from each request need to be fine-tuned [#5](../../issues/5)
+- Certain edge cases of Pocket API (such as Retrieve request with offset past final articles on list) need to be handled [#10](../../issues/10)
+- Check out [Issues](../../issues) to post your own
 
 ## Future Additions
-- Customize ordering of Pocket articles to be loaded (#8)
-- Clipboard support for adding articles from the clipboard (#9)
-- Quick tag system (#6)
-- Consider switching to [go-pocket](https://github.com/motemen/go-pocket) for Pocket API interaction (#7)
+- Customize ordering of Pocket articles to be loaded [#8](../../issues/8)
+- Clipboard support for adding articles from the clipboard [#9](../../issues/9)
+- Quick tag system [#6](../../issues/6)
+- Consider switching to [go-pocket](https://github.com/motemen/go-pocket) for Pocket API interaction [#7](../../issues/7)
