@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	models "gyroid/lib/models"
+	models "github.com/Coteh/gyroid/lib/models"
 	"io/ioutil"
 	"net/http"
 )

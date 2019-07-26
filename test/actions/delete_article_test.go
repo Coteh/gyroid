@@ -1,8 +1,8 @@
 package actions_test
 
 import (
-	"gyroid/lib/actions"
-	"gyroid/lib/models"
+	"github.com/Coteh/gyroid/lib/actions"
+	"github.com/Coteh/gyroid/lib/models"
 	"testing"
 
 	"github.com/stretchr/testify/assert"

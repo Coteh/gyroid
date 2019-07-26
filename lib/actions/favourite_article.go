@@ -1,7 +1,7 @@
 package actions
 
 import (
-	pocketConnector "gyroid/lib/connector"
+	pocketConnector "github.com/Coteh/gyroid/lib/connector"
 )
 
 // FavouriteArticle modifies a given Pocket article (by its ID) to mark it as a favourite

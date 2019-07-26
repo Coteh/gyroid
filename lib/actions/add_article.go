@@ -1,8 +1,8 @@
 package actions
 
 import (
-	pocketConnector "gyroid/lib/connector"
-	models "gyroid/lib/models"
+	pocketConnector "github.com/Coteh/gyroid/lib/connector"
+	models "github.com/Coteh/gyroid/lib/models"
 )
 
 // AddArticle adds a given article (by its URL) to the user's Pocket list

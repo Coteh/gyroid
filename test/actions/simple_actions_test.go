@@ -1,7 +1,7 @@
 package actions_test
 
 import (
-	"gyroid/lib/models"
+	"github.com/Coteh/gyroid/lib/models"
 )
 
 type PocketClientSimpleActionMock struct {

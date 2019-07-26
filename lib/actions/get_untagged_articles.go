@@ -2,8 +2,8 @@ package actions
 
 import (
 	"errors"
-	pocketConnector "gyroid/lib/connector"
-	models "gyroid/lib/models"
+	pocketConnector "github.com/Coteh/gyroid/lib/connector"
+	models "github.com/Coteh/gyroid/lib/models"
 
 	"sync"
 )

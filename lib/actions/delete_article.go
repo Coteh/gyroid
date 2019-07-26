@@ -1,7 +1,7 @@
 package actions
 
 import (
-	pocketConnector "gyroid/lib/connector"
+	pocketConnector "github.com/Coteh/gyroid/lib/connector"
 )
 
 // DeleteArticle modifies a given Pocket article (by its ID) to delete it from the user's Pocket list

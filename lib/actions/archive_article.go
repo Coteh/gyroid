@@ -1,7 +1,7 @@
 package actions
 
 import (
-	pocketConnector "gyroid/lib/connector"
+	pocketConnector "github.com/Coteh/gyroid/lib/connector"
 )
 
 // ArchiveArticle modifies a given Pocket article (by its ID) to archive it from the user's Pocket list

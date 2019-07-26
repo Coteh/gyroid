@@ -1,8 +1,8 @@
 package actions
 
 import (
-	pocketConnector "gyroid/lib/connector"
-	models "gyroid/lib/models"
+	pocketConnector "github.com/Coteh/gyroid/lib/connector"
+	models "github.com/Coteh/gyroid/lib/models"
 )
 
 // BumpArticleToTop modifies a given Pocket article (by its ID) to readd (unarchive) it from the user's list

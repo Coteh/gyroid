@@ -1,8 +1,8 @@
 package actions
 
 import (
-	pocketConnector "gyroid/lib/connector"
-	"gyroid/lib/utils"
+	pocketConnector "github.com/Coteh/gyroid/lib/connector"
+	"github.com/Coteh/gyroid/lib/utils"
 	"time"
 )
 
