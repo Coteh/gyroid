@@ -1,14 +1,14 @@
 package actions
 
 import (
-	pocketConnector "github.com/Coteh/gyroid/lib/connector"
-	models "github.com/Coteh/gyroid/lib/models"
+	"github.com/Coteh/gyroid/lib/connector"
+	"github.com/Coteh/gyroid/lib/models"
 
 	"strings"
 )
 
 // MarkArticleWithTag modifies a given Pocket article (by its ID) to give it a specified set of tags
-func MarkArticleWithTag(client pocketConnector.PocketConnector, articleID string, tags []string) (bool, error) {
+func MarkArticleWithTag(client connector.PocketConnector, articleID string, tags []string) (bool, error) {
 	resultArr, err := sendModifyRequest(client, &models.PocketAction{
 		Action: "tags_add",
 		ItemID: articleID,
