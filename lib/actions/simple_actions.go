@@ -1,11 +1,11 @@
 package actions
 
 import (
-	pocketConnector "gyroid/lib/connector"
-	models "gyroid/lib/models"
+	"github.com/Coteh/gyroid/lib/connector"
+	"github.com/Coteh/gyroid/lib/models"
 )
 
-func simpleModifyAction(client pocketConnector.PocketConnector, articleID string, action string) (bool, error) {
+func simpleModifyAction(client connector.PocketConnector, articleID string, action string) (bool, error) {
 	resultArr, err := sendModifyRequest(client, &models.PocketAction{
 		Action: action,
 		ItemID: articleID,

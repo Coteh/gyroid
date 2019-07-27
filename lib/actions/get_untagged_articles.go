@@ -2,14 +2,15 @@ package actions
 
 import (
 	"errors"
-	pocketConnector "gyroid/lib/connector"
-	models "gyroid/lib/models"
+
+	"github.com/Coteh/gyroid/lib/connector"
+	"github.com/Coteh/gyroid/lib/models"
 
 	"sync"
 )
 
 // GetUntaggedArticles retrieves all untagged articles for a given user (by their access token) from Pocket
-func GetUntaggedArticles(client pocketConnector.PocketConnector, start int, count int, articleList *[]models.ArticleResult, mut *sync.Mutex) error {
+func GetUntaggedArticles(client connector.PocketConnector, start int, count int, articleList *[]models.ArticleResult, mut *sync.Mutex) error {
 	if start < 0 {
 		return errors.New("Start is invalid")
 	} else if count == 0 {

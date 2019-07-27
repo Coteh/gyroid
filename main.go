@@ -4,10 +4,10 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
-	pocketActions "gyroid/lib/actions"
-	pocketConnector "gyroid/lib/connector"
-	models "gyroid/lib/models"
-	utils "gyroid/lib/utils"
+	"github.com/Coteh/gyroid/lib/actions"
+	"github.com/Coteh/gyroid/lib/connector"
+	"github.com/Coteh/gyroid/lib/models"
+	"github.com/Coteh/gyroid/lib/utils"
 	"log"
 	"os"
 	"os/user"
@@ -29,7 +29,7 @@ func loadEnvVars(isVerbose bool) {
 	}
 }
 
-func initializePocketConnection() *pocketConnector.PocketClient {
+func initializePocketConnection() *connector.PocketClient {
 	consumerKey := os.Getenv("CONSUMER_KEY")
 	redirectURI := os.Getenv("REDIRECT_URI")
 	if redirectURI == "" {
@@ -61,11 +61,11 @@ func initializePocketConnection() *pocketConnector.PocketClient {
 		accessToken = pocketAuth.AccessToken
 	}
 
-	pocketClient := pocketConnector.CreatePocketClient(consumerKey, accessToken)
+	pocketClient := connector.CreatePocketClient(consumerKey, accessToken)
 
 	if accessToken == "" {
 		fmt.Println("Creating new access token")
-		accessToken, err = pocketActions.PerformAuth(pocketClient, 3000, redirectURI, utils.OpenBrowser)
+		accessToken, err = actions.PerformAuth(pocketClient, 3000, redirectURI, utils.OpenBrowser)
 		if err != nil {
 			log.Fatal("Authentication with Pocket failed", err)
 		}
@@ -80,13 +80,13 @@ func initializePocketConnection() *pocketConnector.PocketClient {
 	return pocketClient
 }
 
-func loadPocketArticles(pocketClient *pocketConnector.PocketClient, articlesList *[]models.ArticleResult) {
+func loadPocketArticles(pocketClient *connector.PocketClient, articlesList *[]models.ArticleResult) {
 	var mut sync.Mutex
 
 	// Count should be high to prevent rate limiting for user
 	count := 200
 
-	err := pocketActions.GetUntaggedArticles(pocketClient, 0, count, articlesList, &mut)
+	err := actions.GetUntaggedArticles(pocketClient, 0, count, articlesList, &mut)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -94,7 +94,7 @@ func loadPocketArticles(pocketClient *pocketConnector.PocketClient, articlesList
 	i := count
 	for i < 1000 {
 		go func(start int) {
-			err := pocketActions.GetUntaggedArticles(pocketClient, start, count, articlesList, &mut)
+			err := actions.GetUntaggedArticles(pocketClient, start, count, articlesList, &mut)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -103,7 +103,7 @@ func loadPocketArticles(pocketClient *pocketConnector.PocketClient, articlesList
 	}
 }
 
-func runArticleLoop(pocketClient *pocketConnector.PocketClient, articlesList *[]models.ArticleResult) {
+func runArticleLoop(pocketClient *connector.PocketClient, articlesList *[]models.ArticleResult) {
 	articles := *articlesList
 
 	if len(articles) == 0 {
@@ -145,7 +145,7 @@ func runArticleLoop(pocketClient *pocketConnector.PocketClient, articlesList *[]
 				return strings.Split(input, ",")
 			})
 
-			result, err := pocketActions.MarkArticleWithTag(pocketClient, article.ItemID, tags)
+			result, err := actions.MarkArticleWithTag(pocketClient, article.ItemID, tags)
 			if result {
 				fmt.Println("Tagging success")
 			} else {
@@ -158,14 +158,14 @@ func runArticleLoop(pocketClient *pocketConnector.PocketClient, articlesList *[]
 			break
 		case "f":
 			if isFav {
-				_, err := pocketActions.UnfavouriteArticle(pocketClient, article.ItemID)
+				_, err := actions.UnfavouriteArticle(pocketClient, article.ItemID)
 				if err != nil {
 					fmt.Println("Failure unfavouriting article: ", err)
 				} else {
 					fmt.Println("Success unfavouriting article")
 				}
 			} else {
-				_, err := pocketActions.FavouriteArticle(pocketClient, article.ItemID)
+				_, err := actions.FavouriteArticle(pocketClient, article.ItemID)
 				if err != nil {
 					fmt.Println("Failure favouriting article: ", err)
 				} else {
@@ -176,7 +176,7 @@ func runArticleLoop(pocketClient *pocketConnector.PocketClient, articlesList *[]
 			isFav = !isFav
 			break
 		case "b":
-			_, err := pocketActions.BumpArticleToTop(pocketClient, article.ItemID)
+			_, err := actions.BumpArticleToTop(pocketClient, article.ItemID)
 			if err != nil {
 				fmt.Println("Failure bumping article: ", err)
 			} else {
@@ -184,7 +184,7 @@ func runArticleLoop(pocketClient *pocketConnector.PocketClient, articlesList *[]
 			}
 			break
 		case "a":
-			_, err := pocketActions.ArchiveArticle(pocketClient, article.ItemID)
+			_, err := actions.ArchiveArticle(pocketClient, article.ItemID)
 			if err != nil {
 				fmt.Println("Failure archiving article: ", err)
 			} else {
@@ -204,7 +204,7 @@ func runArticleLoop(pocketClient *pocketConnector.PocketClient, articlesList *[]
 				fmt.Println("Invalid URL")
 				break
 			}
-			result, err := pocketActions.AddArticle(pocketClient, url)
+			result, err := actions.AddArticle(pocketClient, url)
 			if err != nil {
 				fmt.Println("Error adding article: ", err)
 			} else {
@@ -223,7 +223,7 @@ func runArticleLoop(pocketClient *pocketConnector.PocketClient, articlesList *[]
 			}
 			fallthrough
 		case "dd":
-			_, err := pocketActions.DeleteArticle(pocketClient, article.ItemID)
+			_, err := actions.DeleteArticle(pocketClient, article.ItemID)
 			if err != nil {
 				fmt.Println("Failure archiving article: ", err)
 			} else {

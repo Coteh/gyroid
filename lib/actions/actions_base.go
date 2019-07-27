@@ -1,11 +1,11 @@
 package actions
 
 import (
-	pocketConnector "gyroid/lib/connector"
-	models "gyroid/lib/models"
+	"github.com/Coteh/gyroid/lib/connector"
+	"github.com/Coteh/gyroid/lib/models"
 )
 
-func sendModifyRequest(client pocketConnector.PocketConnector, payload *models.PocketAction) ([]interface{}, error) {
+func sendModifyRequest(client connector.PocketConnector, payload *models.PocketAction) ([]interface{}, error) {
 	actions := make([]models.PocketAction, 1)
 	actions[0] = *payload
 

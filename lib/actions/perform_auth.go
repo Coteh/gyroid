@@ -1,13 +1,14 @@
 package actions
 
 import (
-	pocketConnector "gyroid/lib/connector"
-	"gyroid/lib/utils"
 	"time"
+
+	"github.com/Coteh/gyroid/lib/connector"
+	"github.com/Coteh/gyroid/lib/utils"
 )
 
 // PerformAuth performs authentication with Pocket to retrieve an access token for the user
-func PerformAuth(client pocketConnector.PocketConnector, delayMs time.Duration, redirectURI string, browserOpenFunc func(string)) (string, error) {
+func PerformAuth(client connector.PocketConnector, delayMs time.Duration, redirectURI string, browserOpenFunc func(string)) (string, error) {
 	code, err := client.RequestOAuthCode(redirectURI)
 	if err != nil {
 		return "", err

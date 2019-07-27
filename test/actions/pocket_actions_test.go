@@ -2,7 +2,7 @@ package actions_test
 
 import (
 	"errors"
-	"gyroid/lib/models"
+	"github.com/Coteh/gyroid/lib/models"
 
 	"github.com/stretchr/testify/mock"
 )

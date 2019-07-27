@@ -2,7 +2,7 @@ package utils_test
 
 import (
 	"fmt"
-	"gyroid/lib/utils"
+	"github.com/Coteh/gyroid/lib/utils"
 	"testing"
 )
 

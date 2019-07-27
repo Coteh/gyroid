@@ -1,4 +1,4 @@
-module gyroid
+module github.com/Coteh/gyroid
 
 require (
 	github.com/joho/godotenv v1.3.0
