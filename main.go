@@ -30,7 +30,7 @@ func loadEnvVars(isVerbose bool) {
 }
 
 func initializePocketConnection() *connector.PocketClient {
-	consumerKey := os.Getenv("CONSUMER_KEY")
+	consumerKey := os.Getenv("POCKET_CONSUMER_KEY")
 	redirectURI := os.Getenv("REDIRECT_URI")
 	if redirectURI == "" {
 		redirectURI = "localhost:8000"
