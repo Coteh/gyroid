@@ -1,8 +1,10 @@
 package actions_test
 
 import (
-	"github.com/Coteh/gyroid/lib/actions"
+	"errors"
 	"testing"
+
+	"github.com/Coteh/gyroid/lib/actions"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -28,14 +30,6 @@ func (m *PocketAuthClientMock) RequestOAuthCode(redirectUri string) (string, err
 	return CODE_FIXTURE, nil
 }
 
-type FailingPocketClientWithOAuthMock struct {
-	FailingPocketClientMock
-}
-
-func (m *FailingPocketClientWithOAuthMock) RequestOAuthCode(redirectUri string) (string, error) {
-	return CODE_FIXTURE, nil
-}
-
 func openURLStub(redirectUri string) {}
 
 func TestPerformAuthPerformsAuth(t *testing.T) {
@@ -54,25 +48,31 @@ func TestPerformAuthCallsAuthorizeWithCorrectParams(t *testing.T) {
 }
 
 func TestPerformAuthReturnsEmptyStringOnAuthorizeFailure(t *testing.T) {
-	mockClient := &FailingPocketClientWithOAuthMock{}
+	mockClient := &PocketClientMock{}
+	mockClient.On("RequestOAuthCode", REDIRECT_URI_FIXTURE).Return(CODE_FIXTURE, nil)
+	mockClient.On("Authorize", CODE_FIXTURE).Return("", errors.New(MOCK_ERROR_STRING))
 	result, _ := actions.PerformAuth(mockClient, DELAY_MILLISECONDS, REDIRECT_URI_FIXTURE, openURLStub)
 	assert.Empty(t, result)
 }
 
 func TestPerformAuthReturnsErrorOnAuthorizeFailure(t *testing.T) {
-	mockClient := &FailingPocketClientWithOAuthMock{}
+	mockClient := &PocketClientMock{}
+	mockClient.On("RequestOAuthCode", REDIRECT_URI_FIXTURE).Return(CODE_FIXTURE, nil)
+	mockClient.On("Authorize", CODE_FIXTURE).Return("", errors.New(MOCK_ERROR_STRING))
 	_, err := actions.PerformAuth(mockClient, DELAY_MILLISECONDS, REDIRECT_URI_FIXTURE, openURLStub)
 	assert.Equal(t, MOCK_ERROR_STRING, err.Error())
 }
 
 func TestPerformAuthReturnsEmptyStringOnOAuthFailure(t *testing.T) {
-	mockClient := &FailingPocketClientMock{}
+	mockClient := &PocketClientMock{}
+	mockClient.On("RequestOAuthCode", REDIRECT_URI_FIXTURE).Return("", errors.New(MOCK_ERROR_STRING))
 	result, _ := actions.PerformAuth(mockClient, DELAY_MILLISECONDS, REDIRECT_URI_FIXTURE, openURLStub)
 	assert.Empty(t, result)
 }
 
 func TestPerformAuthReturnsErrorOnOAuthFailure(t *testing.T) {
-	mockClient := &FailingPocketClientMock{}
+	mockClient := &PocketClientMock{}
+	mockClient.On("RequestOAuthCode", REDIRECT_URI_FIXTURE).Return("", errors.New(MOCK_ERROR_STRING))
 	_, err := actions.PerformAuth(mockClient, DELAY_MILLISECONDS, REDIRECT_URI_FIXTURE, openURLStub)
 	assert.Equal(t, MOCK_ERROR_STRING, err.Error())
 }

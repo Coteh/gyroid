@@ -1,9 +1,11 @@
 package actions_test
 
 import (
+	"errors"
+	"testing"
+
 	"github.com/Coteh/gyroid/lib/actions"
 	"github.com/Coteh/gyroid/lib/models"
-	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -32,13 +34,15 @@ func TestDeleteArticleReturnsTrueOnSuccess(t *testing.T) {
 }
 
 func TestDeleteArticleReturnsFalseOnClientFailure(t *testing.T) {
-	mockClient := &FailingPocketClientMock{}
+	mockClient := &PocketClientMock{}
+	mockClient.On("Modify", mock.Anything).Return(nil, errors.New(MOCK_ERROR_STRING))
 	result, _ := actions.DeleteArticle(mockClient, ARTICLE_ID_FIXTURE)
 	assert.False(t, result)
 }
 
 func TestDeleteArticleReturnsClientErrorOnClientFailure(t *testing.T) {
-	mockClient := &FailingPocketClientMock{}
+	mockClient := &PocketClientMock{}
+	mockClient.On("Modify", mock.Anything).Return(nil, errors.New(MOCK_ERROR_STRING))
 	_, err := actions.DeleteArticle(mockClient, ARTICLE_ID_FIXTURE)
 	assert.Equal(t, MOCK_ERROR_STRING, err.Error())
 }

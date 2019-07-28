@@ -1,10 +1,12 @@
 package actions_test
 
 import (
-	"github.com/Coteh/gyroid/lib/actions"
-	"github.com/Coteh/gyroid/lib/models"
+	"errors"
 	"sync"
 	"testing"
+
+	"github.com/Coteh/gyroid/lib/actions"
+	"github.com/Coteh/gyroid/lib/models"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -58,7 +60,8 @@ func TestGetUnraggedArticlesCallsRetrieveWithCorrectParams(t *testing.T) {
 }
 
 func TestGetUntaggedArticlesReturnsClientErrorIfClientError(t *testing.T) {
-	mockClient := &FailingPocketClientMock{}
+	mockClient := &PocketClientMock{}
+	mockClient.On("Retrieve", mock.Anything).Return(nil, errors.New(MOCK_ERROR_STRING))
 	articlesList := make([]models.ArticleResult, 0, 20)
 	var mut sync.Mutex
 	err := actions.GetUntaggedArticles(mockClient, 0, 200, &articlesList, &mut)
@@ -66,7 +69,8 @@ func TestGetUntaggedArticlesReturnsClientErrorIfClientError(t *testing.T) {
 }
 
 func TestGetUntaggedArticlesShouldNotAddAnyArticlesIfClientError(t *testing.T) {
-	mockClient := &FailingPocketClientMock{}
+	mockClient := &PocketClientMock{}
+	mockClient.On("Retrieve", mock.Anything).Return(nil, errors.New(MOCK_ERROR_STRING))
 	articlesList := make([]models.ArticleResult, 0, 20)
 	var mut sync.Mutex
 	actions.GetUntaggedArticles(mockClient, 0, 200, &articlesList, &mut)

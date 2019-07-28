@@ -1,9 +1,11 @@
 package actions_test
 
 import (
+	"errors"
+	"testing"
+
 	"github.com/Coteh/gyroid/lib/actions"
 	"github.com/Coteh/gyroid/lib/models"
-	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -55,7 +57,8 @@ func TestMarkArticleWithTagReturnsTrueOnSuccess(t *testing.T) {
 }
 
 func TestMarkArticleWithTagReturnsFalseOnClientFailure(t *testing.T) {
-	mockClient := &FailingPocketClientMock{}
+	mockClient := &PocketClientMock{}
+	mockClient.On("Modify", mock.Anything).Return(nil, errors.New(MOCK_ERROR_STRING))
 	tags := make([]string, 1)
 	tags[0] = "test"
 	result, _ := actions.MarkArticleWithTag(mockClient, "100", tags)
@@ -63,7 +66,8 @@ func TestMarkArticleWithTagReturnsFalseOnClientFailure(t *testing.T) {
 }
 
 func TestMarkArticleWithTagReturnsClientErrorOnClientFailure(t *testing.T) {
-	mockClient := &FailingPocketClientMock{}
+	mockClient := &PocketClientMock{}
+	mockClient.On("Modify", mock.Anything).Return(nil, errors.New(MOCK_ERROR_STRING))
 	tags := make([]string, 1)
 	tags[0] = "test"
 	_, err := actions.MarkArticleWithTag(mockClient, "100", tags)
