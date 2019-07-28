@@ -4,16 +4,17 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
-	"github.com/Coteh/gyroid/lib/actions"
-	"github.com/Coteh/gyroid/lib/connector"
-	"github.com/Coteh/gyroid/lib/models"
-	"github.com/Coteh/gyroid/lib/utils"
 	"log"
 	"os"
 	"os/user"
 	"path/filepath"
 	"strings"
 	"sync"
+
+	"github.com/Coteh/gyroid/lib/actions"
+	"github.com/Coteh/gyroid/lib/connector"
+	"github.com/Coteh/gyroid/lib/models"
+	"github.com/Coteh/gyroid/lib/utils"
 
 	"github.com/joho/godotenv"
 )
@@ -111,6 +112,8 @@ func runArticleLoop(pocketClient *connector.PocketClient, articlesList *[]models
 		return
 	}
 
+	clipboardManager := new(utils.ClipboardManagerImpl)
+
 	i := 0
 	isFav := false
 	isNext := false
@@ -196,13 +199,30 @@ func runArticleLoop(pocketClient *connector.PocketClient, articlesList *[]models
 			utils.OpenBrowser(article.ResolvedURL)
 			break
 		case "+":
-			fmt.Println("Enter the URL to add:")
-			url := readUserInput(func(input string) string {
-				return strings.TrimSpace(input)
-			})
-			if !utils.IsURL(url) {
-				fmt.Println("Invalid URL")
-				break
+			gotURLFromClipboard := false
+			url := ""
+			if utils.IsURLInClipboard(clipboardManager) {
+				url, err := utils.GetFromClipboard(clipboardManager)
+				if err != nil {
+					fmt.Println("There was an error getting URL from clipboard. Continuing to manual add...")
+				} else {
+					fmt.Printf("'%s' was found in your clipboard. Would you like to add it? [Y/n]\n", url)
+					if readYesNoFromUser() {
+						gotURLFromClipboard = true
+					} else {
+						fmt.Println("Did not add URL to Pocket list.")
+					}
+				}
+			}
+			if !gotURLFromClipboard {
+				fmt.Println("Enter the URL to add:")
+				url := readUserInput(func(input string) string {
+					return strings.TrimSpace(input)
+				})
+				if !utils.IsURL(url) {
+					fmt.Println("Invalid URL")
+					break
+				}
 			}
 			result, err := actions.AddArticle(pocketClient, url)
 			if err != nil {
@@ -214,11 +234,8 @@ func runArticleLoop(pocketClient *connector.PocketClient, articlesList *[]models
 		case "d":
 			fmt.Println("Are you sure you want to delete this article? You won't be able to restore it unless you readd it. [Y/n]")
 
-			response := readUserInput(func(input string) string {
-				return strings.TrimSpace(strings.ToLower(input))
-			})
-
-			if response != "y" && response != "yes" {
+			if !readYesNoFromUser() {
+				fmt.Println("Article was not deleted")
 				break
 			}
 			fallthrough
@@ -234,6 +251,7 @@ func runArticleLoop(pocketClient *connector.PocketClient, articlesList *[]models
 			isNext = true
 			break
 		case "e":
+		case "q":
 			return
 		}
 		if isNext {
@@ -300,4 +318,12 @@ func readUserInput(strFunc func(string) string) string {
 
 func readUserInputAsArray(strFunc func(string) []string) []string {
 	return strFunc(readUserInputRaw())
+}
+
+func readYesNoFromUser() bool {
+	response := readUserInput(func(input string) string {
+		return strings.TrimSpace(strings.ToLower(input))
+	})
+
+	return response == "y" || response == "yes"
 }
