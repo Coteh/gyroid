@@ -3,6 +3,7 @@ package utils_test
 import (
 	"fmt"
 	"github.com/Coteh/gyroid/lib/utils"
+	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
@@ -13,9 +14,7 @@ func TestOpenAuthURLOpensAuthURL(t *testing.T) {
 	expectedURL := fmt.Sprintf("https://getpocket.com/auth/authorize?request_token=%s&redirect_uri=%s", requestTokenFixture, redirectURIFixture)
 
 	testOpenBrowser := func(url string) {
-		if url != expectedURL {
-			t.FailNow()
-		}
+		assert.Equal(t, expectedURL, url)
 	}
 
 	utils.OpenAuthURL(requestTokenFixture, redirectURIFixture, testOpenBrowser)
