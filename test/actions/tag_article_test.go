@@ -1,33 +1,18 @@
 package actions_test
 
 import (
+	"errors"
+	"testing"
+
 	"github.com/Coteh/gyroid/lib/actions"
 	"github.com/Coteh/gyroid/lib/models"
-	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
 
-type PocketClientMarkArticleWithTagMock struct {
-	PocketClientMock
-}
-
-func (m *PocketClientMarkArticleWithTagMock) Modify(params models.PocketModify) (*models.PocketModifyResult, error) {
-	m.Called(params)
-	mockArr := make([]interface{}, 1)
-	mockArr[0] = true
-	mockResult := &models.PocketModifyResult{
-		Status:        0,
-		ActionResults: mockArr,
-		ActionErrors:  make([]interface{}, 0),
-	}
-
-	return mockResult, nil
-}
-
 func TestMarkArticleWithTagCallsModifyWithCorrectParams(t *testing.T) {
-	mockClient := &PocketClientMarkArticleWithTagMock{}
+	mockClient := &PocketClientMock{}
 	tags := make([]string, 1)
 	tags[0] = "test"
 	expectedTagReqStr := tags[0]
@@ -41,21 +26,22 @@ func TestMarkArticleWithTagCallsModifyWithCorrectParams(t *testing.T) {
 	expectedParams := models.PocketModify{
 		Actions: expectedActionArr,
 	}
-	mockClient.On("Modify", expectedParams)
+	mockClient.On("Modify", expectedParams).Return(CreateSuccessfulModifyResult(), nil)
 	actions.MarkArticleWithTag(mockClient, ARTICLE_ID_FIXTURE, tags)
 }
 
 func TestMarkArticleWithTagReturnsTrueOnSuccess(t *testing.T) {
-	mockClient := &PocketClientMarkArticleWithTagMock{}
+	mockClient := &PocketClientMock{}
 	tags := make([]string, 1)
 	tags[0] = "test"
-	mockClient.On("Modify", mock.Anything)
+	mockClient.On("Modify", mock.Anything).Return(CreateSuccessfulModifyResult(), nil)
 	result, _ := actions.MarkArticleWithTag(mockClient, "100", tags)
 	assert.True(t, result)
 }
 
 func TestMarkArticleWithTagReturnsFalseOnClientFailure(t *testing.T) {
-	mockClient := &FailingPocketClientMock{}
+	mockClient := &PocketClientMock{}
+	mockClient.On("Modify", mock.Anything).Return(nil, errors.New(MOCK_ERROR_STRING))
 	tags := make([]string, 1)
 	tags[0] = "test"
 	result, _ := actions.MarkArticleWithTag(mockClient, "100", tags)
@@ -63,7 +49,8 @@ func TestMarkArticleWithTagReturnsFalseOnClientFailure(t *testing.T) {
 }
 
 func TestMarkArticleWithTagReturnsClientErrorOnClientFailure(t *testing.T) {
-	mockClient := &FailingPocketClientMock{}
+	mockClient := &PocketClientMock{}
+	mockClient.On("Modify", mock.Anything).Return(nil, errors.New(MOCK_ERROR_STRING))
 	tags := make([]string, 1)
 	tags[0] = "test"
 	_, err := actions.MarkArticleWithTag(mockClient, "100", tags)

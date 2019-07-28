@@ -1,16 +1,18 @@
 package actions_test
 
 import (
+	"errors"
+	"testing"
+
 	"github.com/Coteh/gyroid/lib/actions"
 	"github.com/Coteh/gyroid/lib/models"
-	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
 
 func TestDeleteArticleCallsModifyWithCorrectParams(t *testing.T) {
-	mockClient := &PocketClientSimpleActionMock{}
+	mockClient := &PocketClientMock{}
 	expectedAction := models.PocketAction{
 		Action: "delete",
 		ItemID: ARTICLE_ID_FIXTURE,
@@ -20,25 +22,27 @@ func TestDeleteArticleCallsModifyWithCorrectParams(t *testing.T) {
 	expectedParams := models.PocketModify{
 		Actions: expectedActionArr,
 	}
-	mockClient.On("Modify", expectedParams)
+	mockClient.On("Modify", expectedParams).Return(CreateSuccessfulModifyResult(), nil)
 	actions.DeleteArticle(mockClient, ARTICLE_ID_FIXTURE)
 }
 
 func TestDeleteArticleReturnsTrueOnSuccess(t *testing.T) {
-	mockClient := &PocketClientSimpleActionMock{}
-	mockClient.On("Modify", mock.Anything)
+	mockClient := &PocketClientMock{}
+	mockClient.On("Modify", mock.Anything).Return(CreateSuccessfulModifyResult(), nil)
 	result, _ := actions.DeleteArticle(mockClient, ARTICLE_ID_FIXTURE)
 	assert.True(t, result)
 }
 
 func TestDeleteArticleReturnsFalseOnClientFailure(t *testing.T) {
-	mockClient := &FailingPocketClientMock{}
+	mockClient := &PocketClientMock{}
+	mockClient.On("Modify", mock.Anything).Return(nil, errors.New(MOCK_ERROR_STRING))
 	result, _ := actions.DeleteArticle(mockClient, ARTICLE_ID_FIXTURE)
 	assert.False(t, result)
 }
 
 func TestDeleteArticleReturnsClientErrorOnClientFailure(t *testing.T) {
-	mockClient := &FailingPocketClientMock{}
+	mockClient := &PocketClientMock{}
+	mockClient.On("Modify", mock.Anything).Return(nil, errors.New(MOCK_ERROR_STRING))
 	_, err := actions.DeleteArticle(mockClient, ARTICLE_ID_FIXTURE)
 	assert.Equal(t, MOCK_ERROR_STRING, err.Error())
 }
