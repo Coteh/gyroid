@@ -2,6 +2,8 @@
 
 A [Pocket](https://getpocket.com/) client designed to help you quickly refine your Pocket library.
 
+![Preview](Preview.gif "Preview Image")
+
 ## Motivation
 
 I have an ever-growing collection of articles saved on Pocket that remain untagged, and thus difficult to track down when I want to read them. Also, I find that I am more likely to read articles on the top of my Pocket list, which are the more recently added items, than ones that are in the middle or closer to the bottom. I would like to have a quick and easy way of scanning through my untagged items and either assign them to appropriate tags or bump them back up to the top of my list.
