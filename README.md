@@ -16,6 +16,7 @@ Luckily, Pocket has a number of great tools available in its [public API](https:
 - Archive an article
 - Delete an article
 - Open an article on your web browser directly from the CLI
+- Add an article to your Pocket list, either by manual input or directly from clipboard
 
 ## Installation
 
@@ -50,6 +51,5 @@ See this project's [`maskfile.md`](maskfile.md) for more commands to build and r
 
 ## Future Additions
 - Customize ordering of Pocket articles to be loaded [#8](../../issues/8)
-- Clipboard support for adding articles from the clipboard [#9](../../issues/9)
 - Quick tag system [#6](../../issues/6)
 - Consider switching to [go-pocket](https://github.com/motemen/go-pocket) for Pocket API interaction [#7](../../issues/7)
