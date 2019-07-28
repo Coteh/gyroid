@@ -9,7 +9,7 @@ import (
 const ARTICLE_ID_FIXTURE = "100"
 const MOCK_ERROR_STRING = "Test"
 
-// PocketClientMock implements PocketConnector interface but is not used directly
+// PocketClientMock implements PocketConnector interface and used for tests
 type PocketClientMock struct {
 	mock.Mock
 }
@@ -53,4 +53,34 @@ func (m *PocketClientMock) RequestOAuthCode(redirectUri string) (string, error) 
 func (m *PocketClientMock) Authorize(code string) (string, error) {
 	args := m.Called(code)
 	return args.String(0), args.Error(1)
+}
+
+func CreateSuccessfulRetrieveResult(itemID string) *models.PocketRetrieveResult {
+	mockArr := make(map[string]models.ArticleResult)
+	mockArr[itemID] = models.ArticleResult{
+		ItemID: itemID,
+	}
+	return &models.PocketRetrieveResult{
+		Status: 0,
+		List:   mockArr,
+	}
+}
+
+func CreateSuccessfulAddResult(url string) *models.PocketAddResult {
+	mockItem := make(map[string]interface{})
+	mockItem["normal_url"] = url
+	return &models.PocketAddResult{
+		Status: 0,
+		Item:   mockItem,
+	}
+}
+
+func CreateSuccessfulModifyResult() *models.PocketModifyResult {
+	mockArr := make([]interface{}, 1)
+	mockArr[0] = true
+	return &models.PocketModifyResult{
+		Status:        0,
+		ActionResults: mockArr,
+		ActionErrors:  make([]interface{}, 0),
+	}
 }

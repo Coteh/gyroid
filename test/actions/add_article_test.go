@@ -13,35 +13,20 @@ import (
 
 const URL_FIXTURE = "http://www.google.com"
 
-type PocketArticleAddArticleMock struct {
-	PocketClientMock
-}
-
-func (m *PocketArticleAddArticleMock) Add(params models.PocketAdd) (*models.PocketAddResult, error) {
-	m.Called(params)
-	mockItem := make(map[string]interface{})
-	mockItem["normal_url"] = params.Url
-	mockResult := &models.PocketAddResult{
-		Status: 0,
-		Item:   mockItem,
-	}
-	return mockResult, nil
-}
-
 func TestAddArticleCallsAddWithCorrectParams(t *testing.T) {
-	mockClient := &PocketArticleAddArticleMock{}
+	mockClient := &PocketClientMock{}
 	expectedParams := models.PocketAdd{
 		Url: URL_FIXTURE,
 	}
-	mockClient.On("Add", expectedParams)
+	mockClient.On("Add", expectedParams).Return(CreateSuccessfulAddResult(expectedParams.Url), nil)
 	actions.AddArticle(mockClient, URL_FIXTURE)
 }
 
 func TestAddArticleReturnsItemOnSuccess(t *testing.T) {
-	mockClient := &PocketArticleAddArticleMock{}
+	mockClient := &PocketClientMock{}
 	expectedItem := make(map[string]interface{})
 	expectedItem["normal_url"] = URL_FIXTURE
-	mockClient.On("Add", mock.Anything)
+	mockClient.On("Add", mock.Anything).Return(CreateSuccessfulAddResult(URL_FIXTURE), nil)
 	result, _ := actions.AddArticle(mockClient, URL_FIXTURE)
 	assert.Equal(t, expectedItem, result)
 }

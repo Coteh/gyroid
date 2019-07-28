@@ -12,7 +12,7 @@ import (
 )
 
 func TestUnfavouriteArticleCallsModifyWithCorrectParams(t *testing.T) {
-	mockClient := &PocketClientSimpleActionMock{}
+	mockClient := &PocketClientMock{}
 	expectedAction := models.PocketAction{
 		Action: "unfavorite",
 		ItemID: ARTICLE_ID_FIXTURE,
@@ -22,13 +22,13 @@ func TestUnfavouriteArticleCallsModifyWithCorrectParams(t *testing.T) {
 	expectedParams := models.PocketModify{
 		Actions: expectedActionArr,
 	}
-	mockClient.On("Modify", expectedParams)
+	mockClient.On("Modify", expectedParams).Return(CreateSuccessfulModifyResult(), nil)
 	actions.UnfavouriteArticle(mockClient, ARTICLE_ID_FIXTURE)
 }
 
 func TestUnfavouriteArticleReturnsTrueOnSuccess(t *testing.T) {
-	mockClient := &PocketClientSimpleActionMock{}
-	mockClient.On("Modify", mock.Anything)
+	mockClient := &PocketClientMock{}
+	mockClient.On("Modify", mock.Anything).Return(CreateSuccessfulModifyResult(), nil)
 	result, _ := actions.UnfavouriteArticle(mockClient, ARTICLE_ID_FIXTURE)
 	assert.True(t, result)
 }
