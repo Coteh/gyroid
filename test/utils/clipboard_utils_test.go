@@ -23,19 +23,27 @@ func (m *MockClipboardManager) GetFromClipboard() (string, error) {
 }
 
 func TestIsURLInClipboardReturnsTrueForValidHTTPURL(t *testing.T) {
-	assert.FailNow(t, "Not implemented")
+	clipboardManager := &MockClipboardManager{}
+	clipboardManager.On("GetFromClipboard").Return("http://www.google.com", nil)
+	assert.True(t, utils.IsURLInClipboard(clipboardManager))
 }
 
 func TestIsURLInClipboardReturnsTrueForValidHTTPSURL(t *testing.T) {
-	assert.FailNow(t, "Not implemented")
+	clipboardManager := &MockClipboardManager{}
+	clipboardManager.On("GetFromClipboard").Return("https://www.google.com", nil)
+	assert.True(t, utils.IsURLInClipboard(clipboardManager))
 }
 
 func TestIsURLInClipboardReturnsFalseForInvalidURL(t *testing.T) {
-	assert.FailNow(t, "Not implemented")
+	clipboardManager := &MockClipboardManager{}
+	clipboardManager.On("GetFromClipboard").Return("httpsinvalidurl", nil)
+	assert.False(t, utils.IsURLInClipboard(clipboardManager))
 }
 
 func TestIsURLInClipboardReturnsFalseForClipboardError(t *testing.T) {
-	assert.FailNow(t, "Not implemented")
+	clipboardManager := &MockClipboardManager{}
+	clipboardManager.On("GetFromClipboard").Return("", errors.New(CLIPBOARD_ERROR_FIXTURE))
+	assert.False(t, utils.IsURLInClipboard(clipboardManager))
 }
 
 func TestGetFromClipboardReturnsStringFromClipboardManager(t *testing.T) {
