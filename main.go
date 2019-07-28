@@ -202,7 +202,8 @@ func runArticleLoop(pocketClient *connector.PocketClient, articlesList *[]models
 			gotURLFromClipboard := false
 			url := ""
 			if utils.IsURLInClipboard(clipboardManager) {
-				url, err := utils.GetFromClipboard(clipboardManager)
+				var err error
+				url, err = utils.GetFromClipboard(clipboardManager)
 				if err != nil {
 					fmt.Println("There was an error getting URL from clipboard. Continuing to manual add...")
 				} else {
@@ -216,7 +217,7 @@ func runArticleLoop(pocketClient *connector.PocketClient, articlesList *[]models
 			}
 			if !gotURLFromClipboard {
 				fmt.Println("Enter the URL to add:")
-				url := readUserInput(func(input string) string {
+				url = readUserInput(func(input string) string {
 					return strings.TrimSpace(input)
 				})
 				if !utils.IsURL(url) {
@@ -251,6 +252,7 @@ func runArticleLoop(pocketClient *connector.PocketClient, articlesList *[]models
 			isNext = true
 			break
 		case "e":
+			fallthrough
 		case "q":
 			return
 		}
