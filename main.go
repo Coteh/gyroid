@@ -15,6 +15,7 @@ import (
 	"github.com/Coteh/gyroid/lib/connector"
 	"github.com/Coteh/gyroid/lib/models"
 	"github.com/Coteh/gyroid/lib/utils"
+	"github.com/Coteh/gyroid/lib/config"
 
 	"github.com/joho/godotenv"
 )
@@ -28,6 +29,32 @@ func loadEnvVars(isVerbose bool) {
 	if err != nil && isVerbose {
 		log.Println("Error loading .env file. Will rely on system environment variables instead.")
 	}
+}
+
+func loadConfig() *config.Config {
+	reader, err := os.Open("config.yml")
+	var configObj *config.Config
+	if err != nil {
+		configObj = handleConfigFileError()
+	} else {
+		configObj, err = config.ReadConfig(reader)
+		if err != nil {
+			return handleConfigFileError()
+		}
+	}
+	return configObj
+}
+
+func handleConfigFileError() *config.Config {
+	fmt.Println("Could not load config file, generating new one")
+	configObj := &config.Config{}
+	writer, err := os.Create("config.yml")
+	if err != nil {
+		fmt.Println("Error opening config file to write")
+		return nil
+	}
+	config.WriteConfig(configObj, writer)
+	return configObj
 }
 
 func initializePocketConnection() *connector.PocketClient {
@@ -104,7 +131,7 @@ func loadPocketArticles(pocketClient *connector.PocketClient, articlesList *[]mo
 	}
 }
 
-func runArticleLoop(pocketClient *connector.PocketClient, articlesList *[]models.ArticleResult) {
+func runArticleLoop(pocketClient *connector.PocketClient, articlesList *[]models.ArticleResult, config *config.Config) {
 	articles := *articlesList
 
 	if len(articles) == 0 {
@@ -201,7 +228,7 @@ func runArticleLoop(pocketClient *connector.PocketClient, articlesList *[]models
 		case "+":
 			gotURLFromClipboard := false
 			url := ""
-			if utils.IsURLInClipboard(clipboardManager) {
+			if config.Clipboard && utils.IsURLInClipboard(clipboardManager) {
 				var err error
 				url, err = utils.GetFromClipboard(clipboardManager)
 				if err != nil {
@@ -275,6 +302,7 @@ func main() {
 	}
 
 	loadEnvVars(isVerbose)
+	configObj := loadConfig()
 
 	pocketClient := initializePocketConnection()
 
@@ -282,7 +310,7 @@ func main() {
 
 	loadPocketArticles(pocketClient, &articles)
 
-	runArticleLoop(pocketClient, &articles)
+	runArticleLoop(pocketClient, &articles, configObj)
 }
 
 func loadFromJSON(path string, v interface{}) error {
