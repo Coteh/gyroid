@@ -15,9 +15,13 @@ import (
 	"github.com/Coteh/gyroid/lib/connector"
 	"github.com/Coteh/gyroid/lib/models"
 	"github.com/Coteh/gyroid/lib/utils"
+	"github.com/Coteh/gyroid/lib/config"
 
 	"github.com/joho/godotenv"
 )
+
+const CONFIG_SUBFOLDER_NAME = ".config/gyroid"
+const CONFIG_FILE_NAME = "config.yml"
 
 type PocketAuth struct {
 	AccessToken string `json:"access_token"`
@@ -28,6 +32,44 @@ func loadEnvVars(isVerbose bool) {
 	if err != nil && isVerbose {
 		log.Println("Error loading .env file. Will rely on system environment variables instead.")
 	}
+}
+
+func getFilePath() string {
+	homeDir := utils.UserHomeDir()
+	subfolder := filepath.Clean(homeDir + "/" + CONFIG_SUBFOLDER_NAME)
+	filePath := filepath.Clean(subfolder + "/" + CONFIG_FILE_NAME)
+	os.MkdirAll(subfolder, os.ModePerm)
+	return filePath
+}
+
+func loadConfig(filePath string) *config.Config {
+	reader, err := os.Open(filePath)
+	var configObj *config.Config
+	if err != nil {
+		fmt.Println("Could not load config file, generating new one")
+		configObj = handleConfigFileError(filePath)
+	} else {
+		configObj, err = config.ReadConfig(reader)
+		if err != nil {
+			fmt.Println("Error parsing config file, generating new one")
+			configObj = handleConfigFileError(filePath)
+		}
+	}
+	return configObj
+}
+
+func handleConfigFileError(filePath string) *config.Config {
+	configObj := &config.Config{}
+	writer, err := os.Create(filePath)
+	if err != nil {
+		fmt.Println("Error creating config file, could not open file handle")
+		return configObj
+	}
+	err = config.WriteConfig(configObj, writer)
+	if err != nil {
+		fmt.Println("Error writing config file: " + err.Error())
+	}
+	return configObj
 }
 
 func initializePocketConnection() *connector.PocketClient {
@@ -104,7 +146,7 @@ func loadPocketArticles(pocketClient *connector.PocketClient, articlesList *[]mo
 	}
 }
 
-func runArticleLoop(pocketClient *connector.PocketClient, articlesList *[]models.ArticleResult) {
+func runArticleLoop(pocketClient *connector.PocketClient, articlesList *[]models.ArticleResult, config *config.Config) {
 	articles := *articlesList
 
 	if len(articles) == 0 {
@@ -201,7 +243,7 @@ func runArticleLoop(pocketClient *connector.PocketClient, articlesList *[]models
 		case "+":
 			gotURLFromClipboard := false
 			url := ""
-			if utils.IsURLInClipboard(clipboardManager) {
+			if config.Clipboard && utils.IsURLInClipboard(clipboardManager) {
 				var err error
 				url, err = utils.GetFromClipboard(clipboardManager)
 				if err != nil {
@@ -275,6 +317,7 @@ func main() {
 	}
 
 	loadEnvVars(isVerbose)
+	configObj := loadConfig(getFilePath())
 
 	pocketClient := initializePocketConnection()
 
@@ -282,7 +325,7 @@ func main() {
 
 	loadPocketArticles(pocketClient, &articles)
 
-	runArticleLoop(pocketClient, &articles)
+	runArticleLoop(pocketClient, &articles, configObj)
 }
 
 func loadFromJSON(path string, v interface{}) error {

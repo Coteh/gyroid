@@ -46,6 +46,13 @@ See this project's [`maskfile.md`](maskfile.md) for more commands to build and r
 
 *The commands within the `maskfile.md` can also be executed using [`mask`](https://github.com/jakedeichert/mask). If you don't have mask installed, you can install it from [here](https://crates.io/crates/mask) using `cargo` (requires [Rust toolchain](https://rustup.rs/))*
 
+## Configuration
+The configuration file for `gyroid` will be found in `~/.config/gyroid/config.yml`, where `~` represents your home directory. `gyroid` will populate one on startup if not found, or you can define it yourself using the following template:
+
+```yaml
+clipboard: false     # whether or not to use clipboard (disabled by default)
+```
+
 ## Issues
 - Number of requests made and number of articles to be returned from each request need to be fine-tuned [#5](../../issues/5)
 - Certain edge cases of Pocket API (such as Retrieve request with offset past final articles on list) need to be handled [#10](../../issues/10)
