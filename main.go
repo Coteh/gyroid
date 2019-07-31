@@ -20,6 +20,9 @@ import (
 	"github.com/joho/godotenv"
 )
 
+const CONFIG_SUBFOLDER_NAME = ".config/gyroid"
+const CONFIG_FILE_NAME = "config.yml"
+
 type PocketAuth struct {
 	AccessToken string `json:"access_token"`
 }
@@ -31,29 +34,41 @@ func loadEnvVars(isVerbose bool) {
 	}
 }
 
-func loadConfig() *config.Config {
-	reader, err := os.Open("config.yml")
+func getFilePath() string {
+	homeDir := utils.UserHomeDir()
+	subfolder := filepath.Clean(homeDir + "/" + CONFIG_SUBFOLDER_NAME)
+	filePath := filepath.Clean(subfolder + "/" + CONFIG_FILE_NAME)
+	os.MkdirAll(subfolder, os.ModePerm)
+	return filePath
+}
+
+func loadConfig(filePath string) *config.Config {
+	reader, err := os.Open(filePath)
 	var configObj *config.Config
 	if err != nil {
-		configObj = handleConfigFileError()
+		fmt.Println("Could not load config file, generating new one")
+		configObj = handleConfigFileError(filePath)
 	} else {
 		configObj, err = config.ReadConfig(reader)
 		if err != nil {
-			return handleConfigFileError()
+			fmt.Println("Error parsing config file, generating new one")
+			configObj = handleConfigFileError(filePath)
 		}
 	}
 	return configObj
 }
 
-func handleConfigFileError() *config.Config {
-	fmt.Println("Could not load config file, generating new one")
+func handleConfigFileError(filePath string) *config.Config {
 	configObj := &config.Config{}
-	writer, err := os.Create("config.yml")
+	writer, err := os.Create(filePath)
 	if err != nil {
-		fmt.Println("Error opening config file to write")
-		return nil
+		fmt.Println("Error creating config file, could not open file handle")
+		return configObj
 	}
-	config.WriteConfig(configObj, writer)
+	err = config.WriteConfig(configObj, writer)
+	if err != nil {
+		fmt.Println("Error writing config file: " + err.Error())
+	}
 	return configObj
 }
 
@@ -302,7 +317,7 @@ func main() {
 	}
 
 	loadEnvVars(isVerbose)
-	configObj := loadConfig()
+	configObj := loadConfig(getFilePath())
 
 	pocketClient := initializePocketConnection()
 
