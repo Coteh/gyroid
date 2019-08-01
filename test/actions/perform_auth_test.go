@@ -33,33 +33,20 @@ func TestPerformAuthCallsAuthorizeWithCorrectParams(t *testing.T) {
 	actions.PerformAuth(mockClient, DELAY_MILLISECONDS, REDIRECT_URI_FIXTURE, openURLStub)
 }
 
-func TestPerformAuthReturnsEmptyStringOnAuthorizeFailure(t *testing.T) {
-	mockClient := &PocketClientMock{}
-	mockClient.On("RequestOAuthCode", REDIRECT_URI_FIXTURE).Return(CODE_FIXTURE, nil)
-	mockClient.On("Authorize", CODE_FIXTURE).Return("", errors.New(MOCK_ERROR_STRING))
-	result, _ := actions.PerformAuth(mockClient, DELAY_MILLISECONDS, REDIRECT_URI_FIXTURE, openURLStub)
-	assert.Empty(t, result)
-}
-
 func TestPerformAuthReturnsErrorOnAuthorizeFailure(t *testing.T) {
 	mockClient := &PocketClientMock{}
 	mockClient.On("RequestOAuthCode", REDIRECT_URI_FIXTURE).Return(CODE_FIXTURE, nil)
 	mockClient.On("Authorize", CODE_FIXTURE).Return("", errors.New(MOCK_ERROR_STRING))
-	_, err := actions.PerformAuth(mockClient, DELAY_MILLISECONDS, REDIRECT_URI_FIXTURE, openURLStub)
+	result, err := actions.PerformAuth(mockClient, DELAY_MILLISECONDS, REDIRECT_URI_FIXTURE, openURLStub)
+	assert.Empty(t, result)
 	assert.Equal(t, MOCK_ERROR_STRING, err.Error())
 }
 
-func TestPerformAuthReturnsEmptyStringOnOAuthFailure(t *testing.T) {
+func TestPerformAuthReturnsErrorOnRequestOAuthCodeFailure(t *testing.T) {
 	mockClient := &PocketClientMock{}
 	mockClient.On("RequestOAuthCode", REDIRECT_URI_FIXTURE).Return("", errors.New(MOCK_ERROR_STRING))
-	result, _ := actions.PerformAuth(mockClient, DELAY_MILLISECONDS, REDIRECT_URI_FIXTURE, openURLStub)
+	result, err := actions.PerformAuth(mockClient, DELAY_MILLISECONDS, REDIRECT_URI_FIXTURE, openURLStub)
 	assert.Empty(t, result)
-}
-
-func TestPerformAuthReturnsErrorOnOAuthFailure(t *testing.T) {
-	mockClient := &PocketClientMock{}
-	mockClient.On("RequestOAuthCode", REDIRECT_URI_FIXTURE).Return("", errors.New(MOCK_ERROR_STRING))
-	_, err := actions.PerformAuth(mockClient, DELAY_MILLISECONDS, REDIRECT_URI_FIXTURE, openURLStub)
 	assert.Equal(t, MOCK_ERROR_STRING, err.Error())
 }
 

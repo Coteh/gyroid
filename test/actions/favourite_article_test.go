@@ -1,7 +1,6 @@
 package actions_test
 
 import (
-	"errors"
 	"testing"
 
 	"github.com/Coteh/gyroid/lib/actions"
@@ -12,7 +11,6 @@ import (
 )
 
 func TestFavouriteArticleCallsModifyWithCorrectParams(t *testing.T) {
-	mockClient := &PocketClientMock{}
 	expectedAction := models.PocketAction{
 		Action: "favorite",
 		ItemID: ARTICLE_ID_FIXTURE,
@@ -22,27 +20,24 @@ func TestFavouriteArticleCallsModifyWithCorrectParams(t *testing.T) {
 	expectedParams := models.PocketModify{
 		Actions: expectedActionArr,
 	}
-	mockClient.On("Modify", expectedParams).Return(CreateSuccessfulModifyResult(), nil)
+	mockClient := CreateSuccessfulPocketClientMock("Modify", CreateSuccessfulModifyResult(), expectedParams)
 	actions.FavouriteArticle(mockClient, ARTICLE_ID_FIXTURE)
 }
 
 func TestFavouriteArticleReturnsTrueOnSuccess(t *testing.T) {
-	mockClient := &PocketClientMock{}
-	mockClient.On("Modify", mock.Anything).Return(CreateSuccessfulModifyResult(), nil)
+	mockClient := CreateSuccessfulPocketClientMock("Modify", CreateSuccessfulModifyResult(), mock.Anything)
 	result, _ := actions.FavouriteArticle(mockClient, ARTICLE_ID_FIXTURE)
 	assert.True(t, result)
 }
 
 func TestFavouriteArticleReturnsFalseOnClientFailure(t *testing.T) {
-	mockClient := &PocketClientMock{}
-	mockClient.On("Modify", mock.Anything).Return(nil, errors.New(MOCK_ERROR_STRING))
+	mockClient := CreateFailingPocketClientMock("Modify", mock.Anything)
 	result, _ := actions.FavouriteArticle(mockClient, ARTICLE_ID_FIXTURE)
 	assert.False(t, result)
 }
 
 func TestFavouriteArticleReturnsClientErrorOnClientFailure(t *testing.T) {
-	mockClient := &PocketClientMock{}
-	mockClient.On("Modify", mock.Anything).Return(nil, errors.New(MOCK_ERROR_STRING))
+	mockClient := CreateFailingPocketClientMock("Modify", mock.Anything)
 	_, err := actions.FavouriteArticle(mockClient, ARTICLE_ID_FIXTURE)
 	assert.Equal(t, MOCK_ERROR_STRING, err.Error())
 }

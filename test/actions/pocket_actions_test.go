@@ -3,6 +3,8 @@ package actions_test
 import (
 	"github.com/Coteh/gyroid/lib/models"
 
+	"errors"
+
 	"github.com/stretchr/testify/mock"
 )
 
@@ -83,4 +85,21 @@ func CreateSuccessfulModifyResult() *models.PocketModifyResult {
 		ActionResults: mockArr,
 		ActionErrors:  make([]interface{}, 0),
 	}
+}
+
+func CreatePocketClientMockWithExpectation(methodName string, arguments ...interface{}) (*PocketClientMock, *mock.Call) {
+	mockClient := &PocketClientMock{}
+	return mockClient, mockClient.On(methodName, arguments...)
+}
+
+func CreateFailingPocketClientMock(methodName string, arguments ...interface{}) *PocketClientMock {
+	mockClient, call := CreatePocketClientMockWithExpectation(methodName, arguments...)
+	call.Return(nil, errors.New(MOCK_ERROR_STRING))
+	return mockClient
+}
+
+func CreateSuccessfulPocketClientMock(methodName string, result interface{}, arguments ...interface{}) *PocketClientMock {
+	mockClient, call := CreatePocketClientMockWithExpectation(methodName, arguments...)
+	call.Return(result, nil)
+	return mockClient
 }

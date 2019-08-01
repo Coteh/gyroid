@@ -1,7 +1,6 @@
 package actions_test
 
 import (
-	"errors"
 	"testing"
 
 	"github.com/Coteh/gyroid/lib/actions"
@@ -12,7 +11,6 @@ import (
 )
 
 func TestBumpArticleToTopCallsModifyWithCorrectParams(t *testing.T) {
-	mockClient := &PocketClientMock{}
 	expectedAction := models.PocketAction{
 		Action: "readd",
 		ItemID: ARTICLE_ID_FIXTURE,
@@ -22,27 +20,24 @@ func TestBumpArticleToTopCallsModifyWithCorrectParams(t *testing.T) {
 	expectedParams := models.PocketModify{
 		Actions: expectedActionArr,
 	}
-	mockClient.On("Modify", expectedParams).Return(CreateSuccessfulModifyResult(), nil)
+	mockClient := CreateSuccessfulPocketClientMock("Modify", CreateSuccessfulModifyResult(), expectedParams)
 	actions.BumpArticleToTop(mockClient, ARTICLE_ID_FIXTURE)
 }
 
 func TestBumpArticleToTopReturnsTrueOnSuccess(t *testing.T) {
-	mockClient := &PocketClientMock{}
-	mockClient.On("Modify", mock.Anything).Return(CreateSuccessfulModifyResult(), nil)
+	mockClient := CreateSuccessfulPocketClientMock("Modify", CreateSuccessfulModifyResult(), mock.Anything)
 	result, _ := actions.BumpArticleToTop(mockClient, ARTICLE_ID_FIXTURE)
 	assert.True(t, result)
 }
 
 func TestBumpArticleToTopReturnsFalseOnClientFailure(t *testing.T) {
-	mockClient := &PocketClientMock{}
-	mockClient.On("Modify", mock.Anything).Return(nil, errors.New(MOCK_ERROR_STRING))
+	mockClient := CreateFailingPocketClientMock("Modify", mock.Anything)
 	result, _ := actions.BumpArticleToTop(mockClient, ARTICLE_ID_FIXTURE)
 	assert.False(t, result)
 }
 
 func TestBumpArticleToTopReturnsClientErrorOnClientFailure(t *testing.T) {
-	mockClient := &PocketClientMock{}
-	mockClient.On("Modify", mock.Anything).Return(nil, errors.New(MOCK_ERROR_STRING))
+	mockClient := CreateFailingPocketClientMock("Modify", mock.Anything)
 	_, err := actions.BumpArticleToTop(mockClient, ARTICLE_ID_FIXTURE)
 	assert.Equal(t, MOCK_ERROR_STRING, err.Error())
 }
