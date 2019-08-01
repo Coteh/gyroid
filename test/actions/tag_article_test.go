@@ -1,7 +1,6 @@
 package actions_test
 
 import (
-	"errors"
 	"testing"
 
 	"github.com/Coteh/gyroid/lib/actions"
@@ -12,7 +11,6 @@ import (
 )
 
 func TestMarkArticleWithTagCallsModifyWithCorrectParams(t *testing.T) {
-	mockClient := &PocketClientMock{}
 	tags := make([]string, 1)
 	tags[0] = "test"
 	expectedTagReqStr := tags[0]
@@ -26,22 +24,20 @@ func TestMarkArticleWithTagCallsModifyWithCorrectParams(t *testing.T) {
 	expectedParams := models.PocketModify{
 		Actions: expectedActionArr,
 	}
-	mockClient.On("Modify", expectedParams).Return(CreateSuccessfulModifyResult(), nil)
+	mockClient := CreateSuccessfulPocketClientMock("Modify", CreateSuccessfulModifyResult(), expectedParams)
 	actions.MarkArticleWithTag(mockClient, ARTICLE_ID_FIXTURE, tags)
 }
 
 func TestMarkArticleWithTagReturnsTrueOnSuccess(t *testing.T) {
-	mockClient := &PocketClientMock{}
 	tags := make([]string, 1)
 	tags[0] = "test"
-	mockClient.On("Modify", mock.Anything).Return(CreateSuccessfulModifyResult(), nil)
+	mockClient := CreateSuccessfulPocketClientMock("Modify", CreateSuccessfulModifyResult(), mock.Anything)
 	result, _ := actions.MarkArticleWithTag(mockClient, "100", tags)
 	assert.True(t, result)
 }
 
 func TestMarkArticleWithTagReturnsFalseOnClientFailure(t *testing.T) {
-	mockClient := &PocketClientMock{}
-	mockClient.On("Modify", mock.Anything).Return(nil, errors.New(MOCK_ERROR_STRING))
+	mockClient := CreateFailingPocketClientMock("Modify", mock.Anything)
 	tags := make([]string, 1)
 	tags[0] = "test"
 	result, _ := actions.MarkArticleWithTag(mockClient, "100", tags)
@@ -49,8 +45,7 @@ func TestMarkArticleWithTagReturnsFalseOnClientFailure(t *testing.T) {
 }
 
 func TestMarkArticleWithTagReturnsClientErrorOnClientFailure(t *testing.T) {
-	mockClient := &PocketClientMock{}
-	mockClient.On("Modify", mock.Anything).Return(nil, errors.New(MOCK_ERROR_STRING))
+	mockClient := CreateFailingPocketClientMock("Modify", mock.Anything)
 	tags := make([]string, 1)
 	tags[0] = "test"
 	_, err := actions.MarkArticleWithTag(mockClient, "100", tags)

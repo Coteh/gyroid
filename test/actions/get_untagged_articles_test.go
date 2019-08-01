@@ -1,7 +1,6 @@
 package actions_test
 
 import (
-	"errors"
 	"sync"
 	"testing"
 
@@ -17,16 +16,14 @@ const COUNT_FIXTURE = 200
 const START_FIXTURE = 0
 
 func TestGetUntaggedArticlesGetsUntaggedArticles(t *testing.T) {
-	mockClient := &PocketClientMock{}
 	articlesList := make([]models.ArticleResult, 0, 20)
 	var mut sync.Mutex
-	mockClient.On("Retrieve", mock.Anything).Return(CreateSuccessfulRetrieveResult(ITEM_ID_FIXTURE), nil)
+	mockClient := CreateSuccessfulPocketClientMock("Retrieve", CreateSuccessfulRetrieveResult(ITEM_ID_FIXTURE), mock.Anything)
 	actions.GetUntaggedArticles(mockClient, 0, 200, &articlesList, &mut)
 	assert.Equal(t, ITEM_ID_FIXTURE, articlesList[0].ItemID)
 }
 
 func TestGetUnraggedArticlesCallsRetrieveWithCorrectParams(t *testing.T) {
-	mockClient := &PocketClientMock{}
 	expectedParams := models.PocketRetrieve{
 		Tag:    "_untagged_",
 		State:  "unread",
@@ -36,13 +33,12 @@ func TestGetUnraggedArticlesCallsRetrieveWithCorrectParams(t *testing.T) {
 	}
 	articlesList := make([]models.ArticleResult, 0, 20)
 	var mut sync.Mutex
-	mockClient.On("Retrieve", expectedParams).Return(CreateSuccessfulRetrieveResult(ITEM_ID_FIXTURE), nil)
+	mockClient := CreateSuccessfulPocketClientMock("Retrieve", CreateSuccessfulRetrieveResult(ITEM_ID_FIXTURE), expectedParams)
 	actions.GetUntaggedArticles(mockClient, START_FIXTURE, COUNT_FIXTURE, &articlesList, &mut)
 }
 
 func TestGetUntaggedArticlesReturnsClientErrorIfClientError(t *testing.T) {
-	mockClient := &PocketClientMock{}
-	mockClient.On("Retrieve", mock.Anything).Return(nil, errors.New(MOCK_ERROR_STRING))
+	mockClient := CreateFailingPocketClientMock("Retrieve", mock.Anything)
 	articlesList := make([]models.ArticleResult, 0, 20)
 	var mut sync.Mutex
 	err := actions.GetUntaggedArticles(mockClient, 0, 200, &articlesList, &mut)
@@ -50,8 +46,7 @@ func TestGetUntaggedArticlesReturnsClientErrorIfClientError(t *testing.T) {
 }
 
 func TestGetUntaggedArticlesShouldNotAddAnyArticlesIfClientError(t *testing.T) {
-	mockClient := &PocketClientMock{}
-	mockClient.On("Retrieve", mock.Anything).Return(nil, errors.New(MOCK_ERROR_STRING))
+	mockClient := CreateFailingPocketClientMock("Retrieve", mock.Anything)
 	articlesList := make([]models.ArticleResult, 0, 20)
 	var mut sync.Mutex
 	actions.GetUntaggedArticles(mockClient, 0, 200, &articlesList, &mut)
@@ -59,55 +54,49 @@ func TestGetUntaggedArticlesShouldNotAddAnyArticlesIfClientError(t *testing.T) {
 }
 
 func TestGetUntaggedArticlesShouldNotAddAnyArticlesIfStartIsInvalid(t *testing.T) {
-	mockClient := &PocketClientMock{}
+	mockClient, _ := CreatePocketClientMockWithExpectation("Retrieve", mock.Anything)
 	articlesList := make([]models.ArticleResult, 0, 20)
 	var mut sync.Mutex
-	mockClient.On("Retrieve", mock.Anything)
 	actions.GetUntaggedArticles(mockClient, -1, 200, &articlesList, &mut)
 	assert.Zero(t, len(articlesList))
 }
 
 func TestGetUntaggedArticlesShouldReturnErrorIfStartIsInvalid(t *testing.T) {
-	mockClient := &PocketClientMock{}
+	mockClient, _ := CreatePocketClientMockWithExpectation("Retrieve", mock.Anything)
 	articlesList := make([]models.ArticleResult, 0, 20)
 	var mut sync.Mutex
-	mockClient.On("Retrieve", mock.Anything)
 	err := actions.GetUntaggedArticles(mockClient, -1, 200, &articlesList, &mut)
 	assert.NotNil(t, err)
 }
 
 func TestGetUntaggedArticlesShouldNotMakeAnyRequestIfStartIsInvalid(t *testing.T) {
-	mockClient := &PocketClientMock{}
+	mockClient, _ := CreatePocketClientMockWithExpectation("Retrieve", mock.Anything)
 	articlesList := make([]models.ArticleResult, 0, 20)
 	var mut sync.Mutex
-	mockClient.On("Retrieve", mock.Anything)
 	actions.GetUntaggedArticles(mockClient, -1, 200, &articlesList, &mut)
 	mockClient.AssertNumberOfCalls(t, "Retrieve", 0)
 }
 
 func TestGetUntaggedArticlesShouldNotAddAnyArticlesIfCountIsZero(t *testing.T) {
-	mockClient := &PocketClientMock{}
+	mockClient, _ := CreatePocketClientMockWithExpectation("Retrieve", mock.Anything)
 	articlesList := make([]models.ArticleResult, 0, 20)
 	var mut sync.Mutex
-	mockClient.On("Retrieve", mock.Anything)
 	actions.GetUntaggedArticles(mockClient, 0, 0, &articlesList, &mut)
 	assert.Zero(t, len(articlesList))
 }
 
 func TestGetUntaggedArticlesShouldReturnErrorIfCountIsZero(t *testing.T) {
-	mockClient := &PocketClientMock{}
+	mockClient, _ := CreatePocketClientMockWithExpectation("Retrieve", mock.Anything)
 	articlesList := make([]models.ArticleResult, 0, 20)
 	var mut sync.Mutex
-	mockClient.On("Retrieve", mock.Anything)
 	err := actions.GetUntaggedArticles(mockClient, 0, 0, &articlesList, &mut)
 	assert.NotNil(t, err)
 }
 
 func TestGetUntaggedArticlesShouldNotMakeAnyRequestIfCountIsZero(t *testing.T) {
-	mockClient := &PocketClientMock{}
+	mockClient, _ := CreatePocketClientMockWithExpectation("Retrieve", mock.Anything)
 	articlesList := make([]models.ArticleResult, 0, 20)
 	var mut sync.Mutex
-	mockClient.On("Retrieve", mock.Anything)
 	actions.GetUntaggedArticles(mockClient, 0, 0, &articlesList, &mut)
 	mockClient.AssertNumberOfCalls(t, "Retrieve", 0)
 }
