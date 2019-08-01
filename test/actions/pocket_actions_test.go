@@ -87,6 +87,10 @@ func CreateSuccessfulModifyResult() *models.PocketModifyResult {
 	}
 }
 
+func CreatePocketClientMock() *PocketClientMock {
+	return &PocketClientMock{}
+}
+
 func CreatePocketClientMockWithExpectation(methodName string, arguments ...interface{}) (*PocketClientMock, *mock.Call) {
 	mockClient := &PocketClientMock{}
 	return mockClient, mockClient.On(methodName, arguments...)

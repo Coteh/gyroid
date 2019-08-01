@@ -19,7 +19,7 @@ const EXPECTED_AUTH_URL = "https://getpocket.com/auth/authorize?request_token=" 
 func openURLStub(redirectUri string) {}
 
 func TestPerformAuthPerformsAuth(t *testing.T) {
-	mockClient := &PocketClientMock{}
+	mockClient := CreatePocketClientMock()
 	mockClient.On("RequestOAuthCode", mock.Anything).Return(CODE_FIXTURE, nil)
 	mockClient.On("Authorize", mock.Anything).Return(ACCESS_TOKEN_FIXTURE, nil)
 	result, _ := actions.PerformAuth(mockClient, DELAY_MILLISECONDS, REDIRECT_URI_FIXTURE, openURLStub)
@@ -27,14 +27,14 @@ func TestPerformAuthPerformsAuth(t *testing.T) {
 }
 
 func TestPerformAuthCallsAuthorizeWithCorrectParams(t *testing.T) {
-	mockClient := &PocketClientMock{}
+	mockClient := CreatePocketClientMock()
 	mockClient.On("RequestOAuthCode", REDIRECT_URI_FIXTURE).Return(CODE_FIXTURE, nil)
 	mockClient.On("Authorize", CODE_FIXTURE).Return(ACCESS_TOKEN_FIXTURE, nil)
 	actions.PerformAuth(mockClient, DELAY_MILLISECONDS, REDIRECT_URI_FIXTURE, openURLStub)
 }
 
 func TestPerformAuthReturnsErrorOnAuthorizeFailure(t *testing.T) {
-	mockClient := &PocketClientMock{}
+	mockClient := CreatePocketClientMock()
 	mockClient.On("RequestOAuthCode", REDIRECT_URI_FIXTURE).Return(CODE_FIXTURE, nil)
 	mockClient.On("Authorize", CODE_FIXTURE).Return("", errors.New(MOCK_ERROR_STRING))
 	result, err := actions.PerformAuth(mockClient, DELAY_MILLISECONDS, REDIRECT_URI_FIXTURE, openURLStub)
@@ -43,7 +43,7 @@ func TestPerformAuthReturnsErrorOnAuthorizeFailure(t *testing.T) {
 }
 
 func TestPerformAuthReturnsErrorOnRequestOAuthCodeFailure(t *testing.T) {
-	mockClient := &PocketClientMock{}
+	mockClient := CreatePocketClientMock()
 	mockClient.On("RequestOAuthCode", REDIRECT_URI_FIXTURE).Return("", errors.New(MOCK_ERROR_STRING))
 	result, err := actions.PerformAuth(mockClient, DELAY_MILLISECONDS, REDIRECT_URI_FIXTURE, openURLStub)
 	assert.Empty(t, result)
@@ -54,7 +54,7 @@ func TestPerformAuthCallsOpenURLCorrectly(t *testing.T) {
 	openURLMock := func(redirectUri string) {
 		assert.Equal(t, EXPECTED_AUTH_URL, redirectUri)
 	}
-	mockClient := &PocketClientMock{}
+	mockClient := CreatePocketClientMock()
 	mockClient.On("RequestOAuthCode", mock.Anything).Return(CODE_FIXTURE, nil)
 	mockClient.On("Authorize", mock.Anything).Return(ACCESS_TOKEN_FIXTURE, nil)
 	actions.PerformAuth(mockClient, DELAY_MILLISECONDS, REDIRECT_URI_FIXTURE, openURLMock)
