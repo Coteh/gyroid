@@ -29,7 +29,7 @@ go run main.go
 > Installs gyroid to GOPATH
 
 ```sh
-go install gyroid
+go install github.com/Coteh/gyroid
 ```
 
 ## test
