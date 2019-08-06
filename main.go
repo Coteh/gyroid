@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"os/user"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -22,6 +21,7 @@ import (
 
 const CONFIG_SUBFOLDER_NAME = ".config/gyroid"
 const CONFIG_FILE_NAME = "config.yml"
+const AUTH_FILE_NAME = "auth.json"
 
 type PocketAuth struct {
 	AccessToken string `json:"access_token"`
@@ -34,11 +34,25 @@ func loadEnvVars(isVerbose bool) {
 	}
 }
 
-func getFilePath() string {
+func getConfigSubfolderPath() string {
 	homeDir := utils.UserHomeDir()
-	subfolder := filepath.Clean(homeDir + "/" + CONFIG_SUBFOLDER_NAME)
-	filePath := filepath.Clean(subfolder + "/" + CONFIG_FILE_NAME)
-	os.MkdirAll(subfolder, os.ModePerm)
+	subfolder := filepath.Join(homeDir, CONFIG_SUBFOLDER_NAME)
+	err := os.MkdirAll(subfolder, os.ModePerm)
+	if err != nil {
+		log.Fatal("Could not create directory for config dir")
+	}
+	return subfolder
+}
+
+func getConfigFilePath() string {
+	subfolder := getConfigSubfolderPath()
+	filePath := filepath.Join(subfolder, CONFIG_FILE_NAME)
+	return filePath
+}
+
+func getAuthFilePath() string {
+	subfolder := getConfigSubfolderPath()
+	filePath := filepath.Join(subfolder, AUTH_FILE_NAME)
 	return filePath
 }
 
@@ -79,25 +93,13 @@ func initializePocketConnection() *connector.PocketClient {
 		redirectURI = "localhost:8000"
 	}
 
-	usr, err := user.Current()
-	if err != nil {
-		log.Fatal("Could not load auth.json file")
-	}
-
-	configDir := filepath.Join(usr.HomeDir, ".config", "pocket")
-
-	err = os.MkdirAll(configDir, 0777)
-	if err != nil {
-		log.Fatal("Could not create directories for config dir")
-	}
-
 	pocketAuth := &PocketAuth{}
 
 	var accessToken string
 
-	authFilePath := filepath.Join(configDir, "auth.json")
+	authFilePath := getAuthFilePath()
 
-	err = loadFromJSON(authFilePath, &pocketAuth)
+	err := loadFromJSON(authFilePath, &pocketAuth)
 	if err != nil {
 		fmt.Println("Could not read auth.json file.")
 	} else {
@@ -317,7 +319,7 @@ func main() {
 	}
 
 	loadEnvVars(isVerbose)
-	configObj := loadConfig(getFilePath())
+	configObj := loadConfig(getConfigFilePath())
 
 	pocketClient := initializePocketConnection()
 
