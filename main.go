@@ -88,10 +88,6 @@ func handleConfigFileError(filePath string) *config.Config {
 
 func initializePocketConnection() *connector.PocketClient {
 	consumerKey := os.Getenv("POCKET_CONSUMER_KEY")
-	redirectURI := os.Getenv("REDIRECT_URI")
-	if redirectURI == "" {
-		redirectURI = "localhost:8000"
-	}
 
 	pocketAuth := &PocketAuth{}
 
@@ -110,7 +106,7 @@ func initializePocketConnection() *connector.PocketClient {
 
 	if accessToken == "" {
 		fmt.Println("Creating new access token")
-		accessToken, err = actions.PerformAuth(pocketClient, 3000, redirectURI, utils.OpenBrowser)
+		accessToken, err = actions.PerformAuth(pocketClient, 3000, utils.OpenBrowser)
 		if err != nil {
 			log.Fatal("Authentication with Pocket failed", err)
 		}
