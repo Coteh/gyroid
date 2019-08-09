@@ -30,6 +30,7 @@ type PocketAuth struct {
 func loadConsumerKey() string {
 	consumerKeyFilePath := filepath.Join(getConfigSubfolderPath(), CONSUMER_KEY_FILE_NAME)
 	file, err := os.Open(consumerKeyFilePath)
+	defer file.Close()
 	if err != nil {
 		log.Fatalf("Could not find consumer key file. Please provide consumer key to %s", consumerKeyFilePath)
 	}
