@@ -30,11 +30,7 @@ go get -u github.com/Coteh/gyroid
 
 You will need a Pocket API consumer key to use `gyroid`. You can grab one [here](https://getpocket.com/developer/apps/new).
 
-You will then need to specify an environment variable `POCKET_CONSUMER_KEY` containing the consumer key you obtained from the previous step. You can create an `.env` file and fill it in like this:
-
-```
-POCKET_CONSUMER_KEY={API KEY from above step}
-```
+You will then need to create a textfile in `~/.config/gyroid` (where `~` is your home directory) called `consumer_key` and simply paste the consumer key into it.
 
 Now you can run the program from your terminal (assuming GOPATH is in your PATH) as follows:
 

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"io/ioutil"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -15,23 +16,29 @@ import (
 	"github.com/Coteh/gyroid/lib/models"
 	"github.com/Coteh/gyroid/lib/utils"
 	"github.com/Coteh/gyroid/lib/config"
-
-	"github.com/joho/godotenv"
 )
 
 const CONFIG_SUBFOLDER_NAME = ".config/gyroid"
 const CONFIG_FILE_NAME = "config.yml"
 const AUTH_FILE_NAME = "auth.json"
+const CONSUMER_KEY_FILE_NAME = "consumer_key"
 
 type PocketAuth struct {
 	AccessToken string `json:"access_token"`
 }
 
-func loadEnvVars(isVerbose bool) {
-	err := godotenv.Load()
-	if err != nil && isVerbose {
-		log.Println("Error loading .env file. Will rely on system environment variables instead.")
+func loadConsumerKey() string {
+	consumerKeyFilePath := filepath.Join(getConfigSubfolderPath(), CONSUMER_KEY_FILE_NAME)
+	file, err := os.Open(consumerKeyFilePath)
+	defer file.Close()
+	if err != nil {
+		log.Fatalf("Could not find consumer key file. Please provide consumer key to %s", consumerKeyFilePath)
 	}
+	consumerKeyBytes, err := ioutil.ReadAll(file)
+	if err != nil {
+		log.Fatal("Error reading consumer key from file")
+	}
+	return string(consumerKeyBytes)
 }
 
 func getConfigSubfolderPath() string {
@@ -86,9 +93,7 @@ func handleConfigFileError(filePath string) *config.Config {
 	return configObj
 }
 
-func initializePocketConnection() *connector.PocketClient {
-	consumerKey := os.Getenv("POCKET_CONSUMER_KEY")
-
+func initializePocketConnection(consumerKey string) *connector.PocketClient {
 	pocketAuth := &PocketAuth{}
 
 	var accessToken string
@@ -307,17 +312,10 @@ func runArticleLoop(pocketClient *connector.PocketClient, articlesList *[]models
 }
 
 func main() {
-	isVerbose := false
-	for i := 1; i < len(os.Args); i++ {
-		if os.Args[i] == "-v" || os.Args[i] == "--verbose" {
-			isVerbose = true
-		}
-	}
-
-	loadEnvVars(isVerbose)
+	consumerKey := loadConsumerKey()
 	configObj := loadConfig(getConfigFilePath())
 
-	pocketClient := initializePocketConnection()
+	pocketClient := initializePocketConnection(consumerKey)
 
 	articles := make([]models.ArticleResult, 0, 10)
 
