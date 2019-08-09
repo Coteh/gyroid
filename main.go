@@ -28,12 +28,12 @@ type PocketAuth struct {
 }
 
 func loadConsumerKey() string {
-	consumerKeyFilePath := filepath.Join(getConfigSubfolderPath(), CONSUMER_KEY_FILE_NAME)
+	consumerKeyFilePath := getFilePathFromConfigFolder(CONSUMER_KEY_FILE_NAME)
 	file, err := os.Open(consumerKeyFilePath)
-	defer file.Close()
 	if err != nil {
 		log.Fatalf("Could not find consumer key file. Please provide consumer key to %s", consumerKeyFilePath)
 	}
+	defer file.Close()
 	consumerKeyBytes, err := ioutil.ReadAll(file)
 	if err != nil {
 		log.Fatal("Error reading consumer key from file")
@@ -51,15 +51,9 @@ func getConfigSubfolderPath() string {
 	return subfolder
 }
 
-func getConfigFilePath() string {
+func getFilePathFromConfigFolder(filename string) string {
 	subfolder := getConfigSubfolderPath()
-	filePath := filepath.Join(subfolder, CONFIG_FILE_NAME)
-	return filePath
-}
-
-func getAuthFilePath() string {
-	subfolder := getConfigSubfolderPath()
-	filePath := filepath.Join(subfolder, AUTH_FILE_NAME)
+	filePath := filepath.Join(subfolder, filename)
 	return filePath
 }
 
@@ -70,6 +64,7 @@ func loadConfig(filePath string) *config.Config {
 		fmt.Println("Could not load config file, generating new one")
 		configObj = handleConfigFileError(filePath)
 	} else {
+		defer reader.Close()
 		configObj, err = config.ReadConfig(reader)
 		if err != nil {
 			fmt.Println("Error parsing config file, generating new one")
@@ -98,7 +93,7 @@ func initializePocketConnection(consumerKey string) *connector.PocketClient {
 
 	var accessToken string
 
-	authFilePath := getAuthFilePath()
+	authFilePath := getFilePathFromConfigFolder(AUTH_FILE_NAME)
 
 	err := loadFromJSON(authFilePath, &pocketAuth)
 	if err != nil {
@@ -313,7 +308,7 @@ func runArticleLoop(pocketClient *connector.PocketClient, articlesList *[]models
 
 func main() {
 	consumerKey := loadConsumerKey()
-	configObj := loadConfig(getConfigFilePath())
+	configObj := loadConfig(getFilePathFromConfigFolder(CONFIG_FILE_NAME))
 
 	pocketClient := initializePocketConnection(consumerKey)
 
