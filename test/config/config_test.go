@@ -78,7 +78,7 @@ func TestWriteConfigReturnsErrorIfNilConfigPassed(t *testing.T) {
 
 	err := config.WriteConfig(nil, writer)
 
-	assert.Equal(t, config.NO_CONFIG_WRITE_ERROR, err.Error())
+	assert.Equal(t, config.NoConfigWriteError, err.Error())
 }
 
 func TestWriteConfigReturnsErrorIfWritingError(t *testing.T) {
@@ -100,5 +100,5 @@ func TestWriteConfigReturnsErrorIfNoBytesWritten(t *testing.T) {
 	writer.On("Write", mock.Anything).Return(0, nil)
 	err := config.WriteConfig(configObj, writer)
 
-	assert.Equal(t, config.NO_BYTES_WRITTEN_ERROR, err.Error())
+	assert.Equal(t, config.NoBytesWrittenError, err.Error())
 }

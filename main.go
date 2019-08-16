@@ -296,14 +296,14 @@ func runArticleLoop(pocketClient *connector.PocketClient, articlesList *[]models
 			if err != nil {
 				fmt.Println("Error adding article: ", err)
 			} else {
-				fmt.Println(result)
 				fmt.Printf("Success adding article: '%s' (%s)\n", result.Title, result.ResolvedURL)
-				fmt.Printf("Would you like to refine it now? [Y/n]")
-				refiningNew = readYesNoFromUser()
+				if config.RefineNew == "prompt" {
+					fmt.Printf("Would you like to refine it now? [Y/n]")
+				}
+				refiningNew = config.RefineNew == "yes" || config.RefineNew == "prompt" && readYesNoFromUser()
 				if refiningNew {
 					articleResultToAdd := *result.ArticleResult
 					articleResultToAdd.ResolvedTitle = result.Title
-					fmt.Println(articleResultToAdd)
 					article = articleResultToAdd
 					isFav = false
 					isNext = false
