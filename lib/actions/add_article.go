@@ -6,7 +6,7 @@ import (
 )
 
 // AddArticle adds a given article (by its URL) to the user's Pocket list
-func AddArticle(client connector.PocketConnector, url string) (map[string]interface{}, error) {
+func AddArticle(client connector.PocketConnector, url string) (*models.AddedArticleResult, error) {
 	addParams := models.PocketAdd{
 		Url: url,
 	}

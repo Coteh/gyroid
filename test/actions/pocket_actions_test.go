@@ -69,8 +69,8 @@ func CreateSuccessfulRetrieveResult(itemID string) *models.PocketRetrieveResult 
 }
 
 func CreateSuccessfulAddResult(url string) *models.PocketAddResult {
-	mockItem := make(map[string]interface{})
-	mockItem["normal_url"] = url
+	mockItem := new(models.AddedArticleResult)
+	mockItem.NormalURL = url
 	return &models.PocketAddResult{
 		Status: 0,
 		Item:   mockItem,
