@@ -42,11 +42,18 @@ See this project's [`maskfile.md`](maskfile.md) for more commands to build and r
 
 *The commands within the `maskfile.md` can also be executed using [`mask`](https://github.com/jakedeichert/mask). If you don't have mask installed, you can install it from [here](https://crates.io/crates/mask) using `cargo` (requires [Rust toolchain](https://rustup.rs/))*
 
+## Definition of Refinement
+
+Within the context of this app, I currently define a "refined" article as an article that contains one or more tags assigned to it. Upon load of the app, all of your "unrefined" articles - untagged articles - will appear one-by-one for you to refine.
+
+This currently suits my personal needs, as an article on my Pocket list that contains one or more tags usually means that I have given the article some consideration already as to whether I actually want to read it or not. I have set up [an Issue](https://github.com/Coteh/gyroid/issues/33) however, for consideration as to whether the definitions of "refined" and "unrefined" can be configured from `config.yml`.
+
 ## Configuration
 The configuration file for `gyroid` will be found in `~/.config/gyroid/config.yml`, where `~` represents your home directory. `gyroid` will populate one on startup if not found, or you can define it yourself using the following template:
 
 ```yaml
 clipboard: false     # whether or not to use clipboard (disabled by default)
+refine-new: yes      # whether or not to add article to refinement list upon add (yes, prompt, or no (default))
 ```
 
 ## Issues
