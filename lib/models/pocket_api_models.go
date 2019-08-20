@@ -40,10 +40,9 @@ type PocketRetrieve struct {
 }
 
 // PocketAddResult represents results from Pocket API's Add endpoint
-// TODO create a struct type for Item
 type PocketAddResult struct {
-	Status int                    `json:"status"`
-	Item   map[string]interface{} `json:"item"`
+	Status int                 `json:"status"`
+	Item   *AddedArticleResult `json:"item"`
 }
 
 // PocketModifyResult represents results from Pocket API's Modify endpoint

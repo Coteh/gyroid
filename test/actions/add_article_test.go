@@ -21,8 +21,8 @@ func TestAddArticleCallsAddWithCorrectParams(t *testing.T) {
 }
 
 func TestAddArticleReturnsItemOnSuccess(t *testing.T) {
-	expectedItem := make(map[string]interface{})
-	expectedItem["normal_url"] = URL_FIXTURE
+	expectedItem := new(models.AddedArticleResult)
+	expectedItem.NormalURL = URL_FIXTURE
 	mockClient := CreateSuccessfulPocketClientMock("Add", CreateSuccessfulAddResult(URL_FIXTURE), mock.Anything)
 	result, _ := actions.AddArticle(mockClient, URL_FIXTURE)
 	assert.Equal(t, expectedItem, result)

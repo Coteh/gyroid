@@ -18,17 +18,25 @@ import (
 	"github.com/Coteh/gyroid/lib/config"
 )
 
-const CONFIG_SUBFOLDER_NAME = ".config/gyroid"
-const CONFIG_FILE_NAME = "config.yml"
-const AUTH_FILE_NAME = "auth.json"
-const CONSUMER_KEY_FILE_NAME = "consumer_key"
+// configSubfolderName is the subfolder containing config files
+const configSubfolderName = ".config/gyroid"
 
+// configFileName is the name of the config file
+const configFileName = "config.yml"
+
+// authFileName is the name of the auth file
+const authFileName = "auth.json"
+
+// consumerKeyFileName is the name of the consumer key file
+const consumerKeyFileName = "consumer_key"
+
+// PocketAuth contain the access token TODO remove
 type PocketAuth struct {
 	AccessToken string `json:"access_token"`
 }
 
 func loadConsumerKey() string {
-	consumerKeyFilePath := getFilePathFromConfigFolder(CONSUMER_KEY_FILE_NAME)
+	consumerKeyFilePath := getFilePathFromConfigFolder(consumerKeyFileName)
 	file, err := os.Open(consumerKeyFilePath)
 	if err != nil {
 		log.Fatalf("Could not find consumer key file. Please provide consumer key to %s", consumerKeyFilePath)
@@ -43,7 +51,7 @@ func loadConsumerKey() string {
 
 func getConfigSubfolderPath() string {
 	homeDir := utils.UserHomeDir()
-	subfolder := filepath.Join(homeDir, CONFIG_SUBFOLDER_NAME)
+	subfolder := filepath.Join(homeDir, configSubfolderName)
 	err := os.MkdirAll(subfolder, os.ModePerm)
 	if err != nil {
 		log.Fatal("Could not create directory for config dir")
@@ -93,7 +101,7 @@ func initializePocketConnection(consumerKey string) *connector.PocketClient {
 
 	var accessToken string
 
-	authFilePath := getFilePathFromConfigFolder(AUTH_FILE_NAME)
+	authFilePath := getFilePathFromConfigFolder(authFileName)
 
 	err := loadFromJSON(authFilePath, &pocketAuth)
 	if err != nil {
@@ -144,6 +152,20 @@ func loadPocketArticles(pocketClient *connector.PocketClient, articlesList *[]mo
 	}
 }
 
+func printArticle(article models.ArticleResult) {
+	fmt.Printf("-----\n'%s'\n'%s'\n%s\n-----\n", article.ResolvedTitle, article.Excerpt, article.ResolvedURL)
+}
+
+func printArticleActions(isFav bool) {
+	unfavStr := ""
+	if isFav {
+		unfavStr = "un"
+	}
+
+	fmt.Printf("[T]ag\t%s[F]avourite\t[B]ump\t[A]rchive\t[D]elete\t[DD]elete with yes\t[O]pen\t[+]Add Article by URL\t[N]ext\t[E]xit\n-----\n",
+		unfavStr)
+}
+
 func runArticleLoop(pocketClient *connector.PocketClient, articlesList *[]models.ArticleResult, config *config.Config) {
 	articles := *articlesList
 
@@ -158,19 +180,19 @@ func runArticleLoop(pocketClient *connector.PocketClient, articlesList *[]models
 	isFav := false
 	isNext := false
 	userMarkedFav := false
+	refiningNew := false
+	var article models.ArticleResult
 	for i < len(articles) {
-		article := articles[i]
+		if !refiningNew {
+			article = articles[i]
+		}
+
 		if !userMarkedFav && article.Favorite == 1 {
 			isFav = true
 		}
 
-		unfavStr := ""
-		if isFav {
-			unfavStr = "un"
-		}
-
-		fmt.Printf("-----\n'%s'\n'%s'\n%s\n-----\n[T]ag\t%s[F]avourite\t[B]ump\t[A]rchive\t[D]elete\t[DD]elete with yes\t[O]pen\t[+]Add Article by URL\t[N]ext\t[E]xit\n-----\n",
-			article.ResolvedTitle, article.Excerpt, article.ResolvedURL, unfavStr)
+		printArticle(article)
+		printArticleActions(isFav)
 
 		command := readUserInput(func(input string) string {
 			return strings.TrimSpace(strings.ToLower(input))
@@ -269,7 +291,19 @@ func runArticleLoop(pocketClient *connector.PocketClient, articlesList *[]models
 			if err != nil {
 				fmt.Println("Error adding article: ", err)
 			} else {
-				fmt.Printf("Success adding article: '%s' (%s)\n", result["title"], result["resolved_url"])
+				fmt.Printf("Success adding article: '%s' (%s)\n", result.Title, result.ResolvedURL)
+				if config.RefineNew == "prompt" {
+					fmt.Printf("Would you like to refine it now? [Y/n]")
+				}
+				refiningNew = config.RefineNew == "yes" || config.RefineNew == "prompt" && readYesNoFromUser()
+				if refiningNew {
+					articleResultToAdd := *result.ArticleResult
+					articleResultToAdd.ResolvedTitle = result.Title
+					article = articleResultToAdd
+					isFav = false
+					isNext = false
+					userMarkedFav = false
+				}
 			}
 			break
 		case "d":
@@ -297,10 +331,13 @@ func runArticleLoop(pocketClient *connector.PocketClient, articlesList *[]models
 			return
 		}
 		if isNext {
-			i++
+			if !refiningNew {
+				i++
+			}
 			isFav = false
 			isNext = false
 			userMarkedFav = false
+			refiningNew = false
 		}
 	}
 	fmt.Println("End of Pocket list")
@@ -308,7 +345,7 @@ func runArticleLoop(pocketClient *connector.PocketClient, articlesList *[]models
 
 func main() {
 	consumerKey := loadConsumerKey()
-	configObj := loadConfig(getFilePathFromConfigFolder(CONFIG_FILE_NAME))
+	configObj := loadConfig(getFilePathFromConfigFolder(configFileName))
 
 	pocketClient := initializePocketConnection(consumerKey)
 
