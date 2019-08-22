@@ -152,8 +152,7 @@ func loadPocketArticles(pocketClient *connector.PocketClient, articlesList *[]mo
 	}
 }
 
-func printArticle(article models.ArticleResult) {
-	minutes := utils.CalculateExpectedReadTime(article.WordCount)
+func printArticle(article models.ArticleResult, minutes int) {
 	var minutesStr string
 	if minutes > 0 {
 		var plural rune
@@ -200,7 +199,8 @@ func runArticleLoop(pocketClient *connector.PocketClient, articlesList *[]models
 			isFav = true
 		}
 
-		printArticle(article)
+		minutes := utils.CalculateExpectedReadTime(article.WordCount)
+		printArticle(article, minutes)
 		printArticleActions(isFav)
 
 		command := readUserInput(func(input string) string {
