@@ -153,7 +153,16 @@ func loadPocketArticles(pocketClient *connector.PocketClient, articlesList *[]mo
 }
 
 func printArticle(article models.ArticleResult) {
-	fmt.Printf("-----\n'%s'\n'%s'\n%s\n-----\n", article.ResolvedTitle, article.Excerpt, article.ResolvedURL)
+	minutes := utils.CalculateExpectedReadTime(article.WordCount)
+	var minutesStr string
+	if minutes > 0 {
+		var plural rune
+		if minutes != 1 {
+			plural = 's'
+		}
+		minutesStr = fmt.Sprintf("Expected Read Time: %d minute%c\n", minutes, plural)
+	}
+	fmt.Printf("-----\n'%s'\n'%s'\n%s%s\n-----\n", article.ResolvedTitle, article.Excerpt, minutesStr, article.ResolvedURL)
 }
 
 func printArticleActions(isFav bool) {
