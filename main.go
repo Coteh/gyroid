@@ -274,7 +274,7 @@ func runArticleLoop(pocketClient *connector.PocketClient, articlesList *[]models
 						clipboardManager.SetMostRecentlyAddedURL(url)
 						gotURLFromClipboard = true
 					} else {
-						fmt.Println("Did not add URL to Pocket list.")
+						fmt.Println("Did not add URL from clipboard to Pocket list.")
 					}
 				}
 			}
@@ -283,6 +283,10 @@ func runArticleLoop(pocketClient *connector.PocketClient, articlesList *[]models
 				url = readUserInput(func(input string) string {
 					return strings.TrimSpace(input)
 				})
+				if url == "" {
+					fmt.Println("Did not enter a URL")
+					break
+				}
 				if !utils.IsURL(url) {
 					fmt.Println("Invalid URL")
 					break
