@@ -26,7 +26,7 @@ func (c *ClipboardManagerImpl) GetMostRecentlyAddedURL() string {
 	return c.AddedURL
 }
 
-// SetMostRecentlyAddedURL sets the URl that was most recently added
+// SetMostRecentlyAddedURL sets the URL that was most recently added
 func (c *ClipboardManagerImpl) SetMostRecentlyAddedURL(url string) {
 	c.AddedURL = url
 }
