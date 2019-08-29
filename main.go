@@ -272,7 +272,7 @@ func runArticleLoop(pocketClient *connector.PocketClient, articlesList *[]models
 		case "+":
 			gotURLFromClipboard := false
 			url := ""
-			if config.Clipboard && utils.IsURLInClipboard(clipboardManager) {
+			if config.Clipboard && utils.IsURLInClipboard(clipboardManager) && !utils.CheckURLMostRecentlyAdded(clipboardManager) {
 				var err error
 				url, err = utils.GetFromClipboard(clipboardManager)
 				if err != nil {
@@ -280,9 +280,10 @@ func runArticleLoop(pocketClient *connector.PocketClient, articlesList *[]models
 				} else {
 					fmt.Printf("'%s' was found in your clipboard. Would you like to add it? [Y/n]\n", url)
 					if readYesNoFromUser() {
+						clipboardManager.SetMostRecentlyAddedURL(url)
 						gotURLFromClipboard = true
 					} else {
-						fmt.Println("Did not add URL to Pocket list.")
+						fmt.Println("Did not add URL from clipboard to Pocket list.")
 					}
 				}
 			}
@@ -291,6 +292,10 @@ func runArticleLoop(pocketClient *connector.PocketClient, articlesList *[]models
 				url = readUserInput(func(input string) string {
 					return strings.TrimSpace(input)
 				})
+				if url == "" {
+					fmt.Println("Did not enter a URL")
+					break
+				}
 				if !utils.IsURL(url) {
 					fmt.Println("Invalid URL")
 					break
