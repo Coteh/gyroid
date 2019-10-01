@@ -4,18 +4,18 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
-	"io/ioutil"
 	"path/filepath"
 	"strings"
 	"sync"
 
 	"github.com/Coteh/gyroid/lib/actions"
+	"github.com/Coteh/gyroid/lib/config"
 	"github.com/Coteh/gyroid/lib/connector"
 	"github.com/Coteh/gyroid/lib/models"
 	"github.com/Coteh/gyroid/lib/utils"
-	"github.com/Coteh/gyroid/lib/config"
 )
 
 // configSubfolderName is the subfolder containing config files
@@ -129,21 +129,21 @@ func initializePocketConnection(consumerKey string) *connector.PocketClient {
 	return pocketClient
 }
 
-func loadPocketArticles(pocketClient *connector.PocketClient, articlesList *[]models.ArticleResult) {
-	var mut sync.Mutex
-
+func loadPocketArticles(pocketClient *connector.PocketClient, articlesList *[]models.ArticleResult, mut *sync.Mutex) {
 	// Count should be high to prevent rate limiting for user
 	count := 200
 
-	err := actions.GetUntaggedArticles(pocketClient, 0, count, articlesList, &mut)
+	err := actions.GetUntaggedArticles(pocketClient, 0, count, articlesList, mut)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	i := count
+	// TODO what if user has more than 1000 articles? :O
+	// TODO fix shifting problem that can occur when user adds article before goroutine gets untagged articles (#40)
 	for i < 1000 {
 		go func(start int) {
-			err := actions.GetUntaggedArticles(pocketClient, start, count, articlesList, &mut)
+			err := actions.GetUntaggedArticles(pocketClient, start, count, articlesList, mut)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -174,10 +174,8 @@ func printArticleActions(isFav bool) {
 		unfavStr)
 }
 
-func runArticleLoop(pocketClient *connector.PocketClient, articlesList *[]models.ArticleResult, config *config.Config) {
-	articles := *articlesList
-
-	if len(articles) == 0 {
+func runArticleLoop(pocketClient *connector.PocketClient, articlesList *[]models.ArticleResult, config *config.Config, mut *sync.Mutex) {
+	if len(*articlesList) == 0 {
 		fmt.Println("No untagged articles")
 		return
 	}
@@ -190,9 +188,9 @@ func runArticleLoop(pocketClient *connector.PocketClient, articlesList *[]models
 	userMarkedFav := false
 	refiningNew := false
 	var article models.ArticleResult
-	for i < len(articles) {
+	for i < len(*articlesList) {
 		if !refiningNew {
-			article = articles[i]
+			article = (*articlesList)[i]
 		}
 
 		if !userMarkedFav && article.Favorite == 1 {
@@ -310,13 +308,17 @@ func runArticleLoop(pocketClient *connector.PocketClient, articlesList *[]models
 					fmt.Printf("Would you like to refine it now? [Y/n]")
 				}
 				refiningNew = config.RefineNew == "yes" || config.RefineNew == "prompt" && readYesNoFromUser()
+				articleResultToAdd := *result.ArticleResult
+				articleResultToAdd.ResolvedTitle = result.Title
 				if refiningNew {
-					articleResultToAdd := *result.ArticleResult
-					articleResultToAdd.ResolvedTitle = result.Title
 					article = articleResultToAdd
 					isFav = false
 					isNext = false
 					userMarkedFav = false
+				} else {
+					mut.Lock()
+					*articlesList = append(*articlesList, articleResultToAdd)
+					mut.Unlock()
 				}
 			}
 			break
@@ -365,9 +367,11 @@ func main() {
 
 	articles := make([]models.ArticleResult, 0, 10)
 
-	loadPocketArticles(pocketClient, &articles)
+	var mut sync.Mutex
 
-	runArticleLoop(pocketClient, &articles, configObj)
+	loadPocketArticles(pocketClient, &articles, &mut)
+
+	runArticleLoop(pocketClient, &articles, configObj, &mut)
 }
 
 func loadFromJSON(path string, v interface{}) error {
