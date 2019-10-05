@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -152,6 +153,55 @@ func loadPocketArticles(pocketClient *connector.PocketClient, articlesList *[]mo
 	}
 }
 
+func addArticle(pocketClient *connector.PocketClient, articlesList *[]models.ArticleResult, config *config.Config, clipboardManager *utils.ClipboardManagerImpl, mut *sync.Mutex) (addedArticle *models.ArticleResult, refineNew bool, err error) {
+	gotURLFromClipboard := false
+	url := ""
+	if config.Clipboard && utils.IsURLInClipboard(clipboardManager) && !utils.CheckURLMostRecentlyAdded(clipboardManager) {
+		var err error
+		url, err = utils.GetFromClipboard(clipboardManager)
+		if err != nil {
+			fmt.Println("There was an error getting URL from clipboard. Continuing to manual add...")
+		} else {
+			fmt.Printf("'%s' was found in your clipboard. Would you like to add it? [Y/n]\n", url)
+			if readYesNoFromUser() {
+				clipboardManager.SetMostRecentlyAddedURL(url)
+				gotURLFromClipboard = true
+			} else {
+				fmt.Println("Did not add URL from clipboard to Pocket list.")
+			}
+		}
+	}
+	if !gotURLFromClipboard {
+		fmt.Println("Enter the URL to add:")
+		url = readUserInput(func(input string) string {
+			return strings.TrimSpace(input)
+		})
+		if url == "" {
+			return nil, false, errors.New("Did not enter a URL")
+		}
+		if !utils.IsURL(url) {
+			return nil, false, errors.New("Invalid URL")
+		}
+	}
+	result, err := actions.AddArticle(pocketClient, url)
+	if err != nil {
+		return nil, false, err
+	} else {
+		fmt.Printf("Success adding article: '%s' (%s)\n", result.Title, result.ResolvedURL)
+		if config.RefineNew == "prompt" {
+			fmt.Printf("Would you like to refine it now? [Y/n]")
+		}
+		refiningNew := config.RefineNew == "yes" || config.RefineNew == "prompt" && readYesNoFromUser()
+		result.ArticleResult.ResolvedTitle = result.Title
+		if !refiningNew {
+			mut.Lock()
+			*articlesList = append(*articlesList, *result.ArticleResult)
+			mut.Unlock()
+		}
+		return result.ArticleResult, refiningNew, nil
+	}
+}
+
 func printArticle(article models.ArticleResult, minutes int) {
 	var minutesStr string
 	if minutes > 0 {
@@ -175,11 +225,6 @@ func printArticleActions(isFav bool) {
 }
 
 func runArticleLoop(pocketClient *connector.PocketClient, articlesList *[]models.ArticleResult, config *config.Config, mut *sync.Mutex) {
-	if len(*articlesList) == 0 {
-		fmt.Println("No untagged articles")
-		return
-	}
-
 	clipboardManager := new(utils.ClipboardManagerImpl)
 
 	i := 0
@@ -268,58 +313,16 @@ func runArticleLoop(pocketClient *connector.PocketClient, articlesList *[]models
 			utils.OpenBrowser(article.ResolvedURL)
 			break
 		case "+":
-			gotURLFromClipboard := false
-			url := ""
-			if config.Clipboard && utils.IsURLInClipboard(clipboardManager) && !utils.CheckURLMostRecentlyAdded(clipboardManager) {
-				var err error
-				url, err = utils.GetFromClipboard(clipboardManager)
-				if err != nil {
-					fmt.Println("There was an error getting URL from clipboard. Continuing to manual add...")
-				} else {
-					fmt.Printf("'%s' was found in your clipboard. Would you like to add it? [Y/n]\n", url)
-					if readYesNoFromUser() {
-						clipboardManager.SetMostRecentlyAddedURL(url)
-						gotURLFromClipboard = true
-					} else {
-						fmt.Println("Did not add URL from clipboard to Pocket list.")
-					}
-				}
-			}
-			if !gotURLFromClipboard {
-				fmt.Println("Enter the URL to add:")
-				url = readUserInput(func(input string) string {
-					return strings.TrimSpace(input)
-				})
-				if url == "" {
-					fmt.Println("Did not enter a URL")
-					break
-				}
-				if !utils.IsURL(url) {
-					fmt.Println("Invalid URL")
-					break
-				}
-			}
-			result, err := actions.AddArticle(pocketClient, url)
+			addedArticle, refineNew, err := addArticle(pocketClient, articlesList, config, clipboardManager, mut)
 			if err != nil {
-				fmt.Println("Error adding article: ", err)
-			} else {
-				fmt.Printf("Success adding article: '%s' (%s)\n", result.Title, result.ResolvedURL)
-				if config.RefineNew == "prompt" {
-					fmt.Printf("Would you like to refine it now? [Y/n]")
-				}
-				refiningNew = config.RefineNew == "yes" || config.RefineNew == "prompt" && readYesNoFromUser()
-				articleResultToAdd := *result.ArticleResult
-				articleResultToAdd.ResolvedTitle = result.Title
-				if refiningNew {
-					article = articleResultToAdd
-					isFav = false
-					isNext = false
-					userMarkedFav = false
-				} else {
-					mut.Lock()
-					*articlesList = append(*articlesList, articleResultToAdd)
-					mut.Unlock()
-				}
+				fmt.Printf("There was an error adding article: %s\n", err)
+				break
+			}
+			if refineNew {
+				article = *addedArticle
+				isFav = false
+				isNext = false
+				userMarkedFav = false
 			}
 			break
 		case "d":
@@ -356,7 +359,21 @@ func runArticleLoop(pocketClient *connector.PocketClient, articlesList *[]models
 			refiningNew = false
 		}
 	}
-	fmt.Println("End of Pocket list")
+	if len(*articlesList) == 0 {
+		fmt.Println("You have no articles in your list")
+	} else {
+		fmt.Println("End of Pocket list reached")
+	}
+	fmt.Println("Would you like to add more? [Y/n]")
+	if readYesNoFromUser() {
+		_, _, err := addArticle(pocketClient, articlesList, config, clipboardManager, mut)
+		if err != nil {
+			fmt.Printf("There was an error adding article: %s\n", err)
+		}
+		runArticleLoop(pocketClient, articlesList, config, mut)
+	} else {
+		fmt.Println("Bye")
+	}
 }
 
 func main() {
