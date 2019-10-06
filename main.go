@@ -153,7 +153,7 @@ func loadPocketArticles(pocketClient *connector.PocketClient, articlesList *[]mo
 	}
 }
 
-func addArticle(pocketClient *connector.PocketClient, articlesList *[]models.ArticleResult, config *config.Config, clipboardManager *utils.ClipboardManagerImpl, mut *sync.Mutex) (addedArticle *models.ArticleResult, refineNew bool, err error) {
+func addArticle(pocketClient *connector.PocketClient, config *config.Config, clipboardManager utils.ClipboardManager) (addedArticle *models.AddedArticleResult, err error) {
 	gotURLFromClipboard := false
 	url := ""
 	if config.Clipboard && utils.IsURLInClipboard(clipboardManager) && !utils.CheckURLMostRecentlyAdded(clipboardManager) {
@@ -177,28 +177,18 @@ func addArticle(pocketClient *connector.PocketClient, articlesList *[]models.Art
 			return strings.TrimSpace(input)
 		})
 		if url == "" {
-			return nil, false, errors.New("Did not enter a URL")
+			return nil, errors.New("Did not enter a URL")
 		}
 		if !utils.IsURL(url) {
-			return nil, false, errors.New("Invalid URL")
+			return nil, errors.New("Invalid URL")
 		}
 	}
 	result, err := actions.AddArticle(pocketClient, url)
 	if err != nil {
-		return nil, false, err
+		return nil, err
 	} else {
-		fmt.Printf("Success adding article: '%s' (%s)\n", result.Title, result.ResolvedURL)
-		if config.RefineNew == "prompt" {
-			fmt.Printf("Would you like to refine it now? [Y/n]")
-		}
-		refiningNew := config.RefineNew == "yes" || config.RefineNew == "prompt" && readYesNoFromUser()
 		result.ArticleResult.ResolvedTitle = result.Title
-		if !refiningNew {
-			mut.Lock()
-			*articlesList = append(*articlesList, *result.ArticleResult)
-			mut.Unlock()
-		}
-		return result.ArticleResult, refiningNew, nil
+		return result, nil
 	}
 }
 
@@ -222,6 +212,10 @@ func printArticleActions(isFav bool) {
 
 	fmt.Printf("[T]ag\t%s[F]avourite\t[B]ump\t[A]rchive\t[D]elete\t[DD]elete with yes\t[O]pen\t[+]Add Article by URL\t[N]ext\t[E]xit\n-----\n",
 		unfavStr)
+}
+
+func printSuccessfullyAddedArticle(article *models.AddedArticleResult) {
+	fmt.Printf("Success adding article: '%s' (%s)\n", article.Title, article.ResolvedURL)
 }
 
 func runArticleLoop(pocketClient *connector.PocketClient, articlesList *[]models.ArticleResult, config *config.Config, mut *sync.Mutex) {
@@ -272,7 +266,6 @@ func runArticleLoop(pocketClient *connector.PocketClient, articlesList *[]models
 					fmt.Println("Did not apply any tags")
 				}
 			}
-			break
 		case "f":
 			if isFav {
 				_, err := actions.UnfavouriteArticle(pocketClient, article.ItemID)
@@ -291,7 +284,6 @@ func runArticleLoop(pocketClient *connector.PocketClient, articlesList *[]models
 			}
 			userMarkedFav = true
 			isFav = !isFav
-			break
 		case "b":
 			_, err := actions.BumpArticleToTop(pocketClient, article.ItemID)
 			if err != nil {
@@ -299,7 +291,6 @@ func runArticleLoop(pocketClient *connector.PocketClient, articlesList *[]models
 			} else {
 				fmt.Println("Success bumping article")
 			}
-			break
 		case "a":
 			_, err := actions.ArchiveArticle(pocketClient, article.ItemID)
 			if err != nil {
@@ -308,23 +299,30 @@ func runArticleLoop(pocketClient *connector.PocketClient, articlesList *[]models
 				fmt.Println("Success archiving article")
 			}
 			isNext = true
-			break
 		case "o":
 			utils.OpenBrowser(article.ResolvedURL)
-			break
 		case "+":
-			addedArticle, refineNew, err := addArticle(pocketClient, articlesList, config, clipboardManager, mut)
+			result, err := addArticle(pocketClient, config, clipboardManager)
 			if err != nil {
 				fmt.Printf("There was an error adding article: %s\n", err)
 				break
 			}
-			if refineNew {
-				article = *addedArticle
-				isFav = false
+			printSuccessfullyAddedArticle(result)
+			if config.RefineNew == "prompt" {
+				fmt.Printf("Would you like to refine it now? [Y/n]")
+			}
+			refiningNew = config.RefineNew == "yes" || config.RefineNew == "prompt" && readYesNoFromUser()
+			if !refiningNew {
+				mut.Lock()
+				*articlesList = append(*articlesList, *result.ArticleResult)
+				mut.Unlock()
+			} else {
+				article = *result.ArticleResult
+				printArticle(article, 0)
 				isNext = false
+				isFav = false
 				userMarkedFav = false
 			}
-			break
 		case "d":
 			fmt.Println("Are you sure you want to delete this article? You won't be able to restore it unless you readd it. [Y/n]")
 
@@ -343,13 +341,15 @@ func runArticleLoop(pocketClient *connector.PocketClient, articlesList *[]models
 			fallthrough
 		case "n":
 			isNext = true
-			break
 		case "e":
 			fallthrough
 		case "q":
 			return
 		}
 		if isNext {
+			// If user added article then said yes they would like to refine it right away,
+			// then incrementing i is blocked when saying "next" so that they are brought back
+			// to article they were looking at before
 			if !refiningNew {
 				i++
 			}
@@ -366,11 +366,14 @@ func runArticleLoop(pocketClient *connector.PocketClient, articlesList *[]models
 	}
 	fmt.Println("Would you like to add more? [Y/n]")
 	if readYesNoFromUser() {
-		_, _, err := addArticle(pocketClient, articlesList, config, clipboardManager, mut)
+		result, err := addArticle(pocketClient, config, clipboardManager)
 		if err != nil {
 			fmt.Printf("There was an error adding article: %s\n", err)
+		} else {
+			newArticleList := []models.ArticleResult{*result.ArticleResult}
+			printSuccessfullyAddedArticle(result)
+			runArticleLoop(pocketClient, &newArticleList, config, mut)
 		}
-		runArticleLoop(pocketClient, articlesList, config, mut)
 	} else {
 		fmt.Println("Bye")
 	}
