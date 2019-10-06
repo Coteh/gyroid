@@ -218,9 +218,7 @@ func printSuccessfullyAddedArticle(article *models.AddedArticleResult) {
 	fmt.Printf("Success adding article: '%s' (%s)\n", article.Title, article.ResolvedURL)
 }
 
-func runArticleLoop(pocketClient *connector.PocketClient, articlesList *[]models.ArticleResult, config *config.Config, mut *sync.Mutex) {
-	clipboardManager := new(utils.ClipboardManagerImpl)
-
+func runArticleLoop(pocketClient *connector.PocketClient, articlesList *[]models.ArticleResult, config *config.Config, clipboardManager utils.ClipboardManager, mut *sync.Mutex) {
 	i := 0
 	isFav := false
 	isNext := false
@@ -318,7 +316,6 @@ func runArticleLoop(pocketClient *connector.PocketClient, articlesList *[]models
 				mut.Unlock()
 			} else {
 				article = *result.ArticleResult
-				printArticle(article, 0)
 				isNext = false
 				isFav = false
 				userMarkedFav = false
@@ -372,7 +369,7 @@ func runArticleLoop(pocketClient *connector.PocketClient, articlesList *[]models
 		} else {
 			newArticleList := []models.ArticleResult{*result.ArticleResult}
 			printSuccessfullyAddedArticle(result)
-			runArticleLoop(pocketClient, &newArticleList, config, mut)
+			runArticleLoop(pocketClient, &newArticleList, config, clipboardManager, mut)
 		}
 	} else {
 		fmt.Println("Bye")
@@ -382,6 +379,7 @@ func runArticleLoop(pocketClient *connector.PocketClient, articlesList *[]models
 func main() {
 	consumerKey := loadConsumerKey()
 	configObj := loadConfig(getFilePathFromConfigFolder(configFileName))
+	clipboardManager := new(utils.ClipboardManagerImpl)
 
 	pocketClient := initializePocketConnection(consumerKey)
 
@@ -391,7 +389,7 @@ func main() {
 
 	loadPocketArticles(pocketClient, &articles, &mut)
 
-	runArticleLoop(pocketClient, &articles, configObj, &mut)
+	runArticleLoop(pocketClient, &articles, configObj, clipboardManager, &mut)
 }
 
 func loadFromJSON(path string, v interface{}) error {
