@@ -32,6 +32,11 @@ func (m *MockClipboardManager) SetMostRecentlyAddedURL(url string) {
 	m.Called()
 }
 
+func (m *MockClipboardManager) CopyToClipboard(text string) error {
+	args := m.Called()
+	return args.Error(0)
+}
+
 func TestIsURLInClipboardReturnsTrueForValidHTTPURL(t *testing.T) {
 	clipboardManager := &MockClipboardManager{}
 	clipboardManager.On("GetFromClipboard").Return(CLIPBOARD_HTTP_URL_STRING_FIXTURE, nil)
