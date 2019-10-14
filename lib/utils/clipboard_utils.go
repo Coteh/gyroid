@@ -9,6 +9,7 @@ type ClipboardManager interface {
 	GetFromClipboard() (string, error)
 	GetMostRecentlyAddedURL() string
 	SetMostRecentlyAddedURL(url string)
+	CopyToClipboard(text string) error
 }
 
 // ClipboardManagerImpl is an implementation of ClipboardManager that uses atotto's clipboard library
@@ -29,6 +30,11 @@ func (c *ClipboardManagerImpl) GetMostRecentlyAddedURL() string {
 // SetMostRecentlyAddedURL sets the URL that was most recently added
 func (c *ClipboardManagerImpl) SetMostRecentlyAddedURL(url string) {
 	c.AddedURL = url
+}
+
+// CopyToClipboard writes supplied text to the clipboard using atotto's clipboard library
+func (c *ClipboardManagerImpl) CopyToClipboard(text string) error {
+	return clipboard.WriteAll(text)
 }
 
 // IsURLInClipboard checks to see if the clipboard text is actually a URL

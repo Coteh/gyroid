@@ -204,14 +204,18 @@ func printArticle(article models.ArticleResult, minutes int) {
 	fmt.Printf("-----\n'%s'\n'%s'\n%s%s\n-----\n", article.ResolvedTitle, article.Excerpt, minutesStr, article.ResolvedURL)
 }
 
-func printArticleActions(isFav bool) {
+func printArticleActions(isFav bool, config *config.Config) {
 	unfavStr := ""
 	if isFav {
 		unfavStr = "un"
 	}
 
-	fmt.Printf("[T]ag\t%s[F]avourite\t[B]ump\t[A]rchive\t[D]elete\t[DD]elete with yes\t[O]pen\t[+]Add Article by URL\t[N]ext\t[E]xit\n-----\n",
+	fmt.Printf("[T]ag\t%s[F]avourite\t[B]ump\t[A]rchive\t[D]elete\t[DD]elete with yes\t[O]pen",
 		unfavStr)
+	if config.Clipboard {
+		fmt.Printf("\t[C]opy URL")
+	}
+	fmt.Printf("\t[+]Add Article by URL\t[N]ext\t[E]xit\n-----\n")
 }
 
 func printSuccessfullyAddedArticle(article *models.AddedArticleResult) {
@@ -236,7 +240,7 @@ func runArticleLoop(pocketClient *connector.PocketClient, articlesList *[]models
 
 		minutes := utils.CalculateExpectedReadTime(article.WordCount)
 		printArticle(article, minutes)
-		printArticleActions(isFav)
+		printArticleActions(isFav, config)
 
 		command := readUserInput(func(input string) string {
 			return strings.TrimSpace(strings.ToLower(input))
@@ -319,6 +323,17 @@ func runArticleLoop(pocketClient *connector.PocketClient, articlesList *[]models
 				isNext = false
 				isFav = false
 				userMarkedFav = false
+			}
+		case "c":
+			if !config.Clipboard {
+				fmt.Println("Clipboard not enabled")
+				break
+			}
+			err := clipboardManager.CopyToClipboard(article.ResolvedURL)
+			if err != nil {
+				fmt.Println("Failure copying article URL: ", err)
+			} else {
+				fmt.Println("Success copying article URL")
 			}
 		case "d":
 			fmt.Println("Are you sure you want to delete this article? You won't be able to restore it unless you readd it. [Y/n]")
