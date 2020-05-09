@@ -20,7 +20,7 @@ jobs:
             go tool cover -html=c.out -o coverage.html
             mv coverage.html /tmp/artifacts
       - codecov/upload:
-          file: {{ /tmp/artifacts/coverage.html }}
+          file: /tmp/artifacts/coverage.html
       - store_artifacts:
           path: /tmp/artifacts
       - store_test_results:
