@@ -17,10 +17,9 @@ jobs:
       - run:
           command: |
             go test -cover -coverprofile=c.out -v ./... 2>&1 | go-junit-report > junit/report.xml
-            go tool cover -html=c.out -o coverage.html
-            mv coverage.html /tmp/artifacts
+            mv c.out /tmp/artifacts
       - codecov/upload:
-          file: /tmp/artifacts/coverage.html
+          file: /tmp/artifacts/c.out
       - store_artifacts:
           path: /tmp/artifacts
       - store_test_results:
