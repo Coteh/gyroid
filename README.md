@@ -1,4 +1,8 @@
-# gyroid [![CircleCI](https://circleci.com/gh/Coteh/gyroid.svg?style=shield)](https://circleci.com/gh/Coteh/gyroid)
+# gyroid
+
+[![CircleCI](https://circleci.com/gh/Coteh/gyroid.svg?style=shield)](https://circleci.com/gh/Coteh/gyroid)
+[![codecov](https://codecov.io/gh/Coteh/gyroid/branch/master/graph/badge.svg)](https://codecov.io/gh/Coteh/gyroid)
+[![Go Report Card](https://goreportcard.com/badge/github.com/Coteh/gyroid)](https://goreportcard.com/report/github.com/Coteh/gyroid)
 
 A [Pocket](https://getpocket.com/) client designed to help you quickly refine your Pocket library.
 
