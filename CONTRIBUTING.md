@@ -15,6 +15,7 @@ Please note there is a code of conduct, which can be reviewed at the end of this
 
 1. Once you finish your implementation, you can create a Pull Request (PR) with details of the implementation and any changes to project structure, dependencies, etc.
    - Other important information that should be mentioned can include any new environment variables, exposed ports, useful file locations and container parameters.
+   - If there's a new config variable added to `config.yml`, add it to the template in `README.md`.
 2. Please create a test plan with your PR as well, with automated tests where appropriate. This ensures reliability and testability of your solution.
 3. You may merge the PR once you have the sign-off of the project maintainer, or if you do not have permission to do that, you may request the project maintainer to merge it for you.
 
