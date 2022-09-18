@@ -162,7 +162,7 @@ func addArticle(pocketClient *connector.PocketClient, config *config.Config, cli
 		if err != nil {
 			fmt.Println("There was an error getting URL from clipboard. Continuing to manual add...")
 		} else {
-			fmt.Printf("'%s' was found in your clipboard. Would you like to add it? [Y/n]\n", url)
+			fmt.Printf("'%s' was found in your clipboard.\nWould you like to add it? [Y/n] ", url)
 			if readYesNoFromUser() {
 				clipboardManager.SetMostRecentlyAddedURL(url)
 				gotURLFromClipboard = true
@@ -172,7 +172,7 @@ func addArticle(pocketClient *connector.PocketClient, config *config.Config, cli
 		}
 	}
 	if !gotURLFromClipboard {
-		fmt.Println("Enter the URL to add:")
+		fmt.Print("Enter the URL to add: ")
 		url = readUserInput(func(input string) string {
 			return strings.TrimSpace(input)
 		})
@@ -216,6 +216,11 @@ func printArticleActions(isFav bool, config *config.Config) {
 		fmt.Printf("\t[C]opy URL")
 	}
 	fmt.Printf("\t[+]Add Article by URL\t[N]ext\t[E]xit\n-----\n")
+	printPrompt()
+}
+
+func printPrompt() {
+	fmt.Print("> ")
 }
 
 func printSuccessfullyAddedArticle(article *models.AddedArticleResult) {
@@ -252,7 +257,7 @@ func runArticleLoop(pocketClient *connector.PocketClient, articlesList *[]models
 
 		switch command {
 		case "t":
-			fmt.Println("Enter tags separated by commas (',')")
+			fmt.Print("Enter tags separated by commas (','): ")
 
 			tags := readUserInputAsArray(func(input string) []string {
 				return strings.Split(input, ",")
@@ -311,7 +316,7 @@ func runArticleLoop(pocketClient *connector.PocketClient, articlesList *[]models
 			}
 			printSuccessfullyAddedArticle(result)
 			if config.RefineNew == "prompt" {
-				fmt.Printf("Would you like to refine it now? [Y/n]")
+				fmt.Print("Would you like to refine it now? [Y/n] ")
 			}
 			refiningNew = config.RefineNew == "yes" || config.RefineNew == "prompt" && readYesNoFromUser()
 			if !refiningNew {
@@ -336,7 +341,7 @@ func runArticleLoop(pocketClient *connector.PocketClient, articlesList *[]models
 				fmt.Println("Success copying article URL")
 			}
 		case "d":
-			fmt.Println("Are you sure you want to delete this article? You won't be able to restore it unless you readd it. [Y/n]")
+			fmt.Print("Are you sure you want to delete this article? You won't be able to restore it unless you readd it. [Y/n] ")
 
 			if !readYesNoFromUser() {
 				fmt.Println("Article was not deleted")
