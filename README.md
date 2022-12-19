@@ -29,7 +29,7 @@ Luckily, Pocket has a number of great tools available in its [public API](https:
 The quickest way to get started with `gyroid` is to run the following command to install it to your GOPATH:
 
 ```
-go get -u github.com/Coteh/gyroid
+go install github.com/Coteh/gyroid
 ```
 
 You will need a Pocket API consumer key to use `gyroid`. You can grab one [here](https://getpocket.com/developer/apps/new).
